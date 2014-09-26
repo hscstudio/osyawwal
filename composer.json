@@ -1,0 +1,53 @@
+{
+    "name": "hsctsudio/osyawwal",
+    "description": "Syawwal Project Base Object",
+    "keywords": ["yii2", "framework", "syawwal"],
+    "homepage": "http://www.bppk.kemenkeu.go.id/",
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/hscstudio/osyawwal/issues?state=open",
+        "forum": "http://www.yiiframework.com/forum/",
+        "wiki": "http://www.yiiframework.com/wiki/",
+        "irc": "irc://irc.freenode.net/yii",
+        "source": "https://github.com/hscstudio/osyawwal"
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "*",
+        "yiisoft/yii2-bootstrap": "*",
+        "yiisoft/yii2-swiftmailer": "*",
+		"hscstudio/yii2-heart": "dev-master"
+    },
+    "require-dev": {
+        "yiisoft/yii2-codeception": "*",
+        "yiisoft/yii2-debug": "*",
+        "yiisoft/yii2-gii": "*",
+        "yiisoft/yii2-faker": "*"
+    },
+	"scripts": {
+        "post-create-project-cmd": [
+            "yii\\composer\\Installer::setPermission"
+        ]
+    },
+    "config": {
+        "process-timeout": 1800
+    },
+    "extra": {
+        "asset-installer-paths": {
+            "npm-asset-library": "vendor/npm",
+            "bower-asset-library": "vendor/bower"
+        },
+		"writable": [
+            "backend/runtime",
+            "backend/web/assets",
+
+            "console/runtime",
+            "console/migrations",
+
+            "frontend/runtime",
+            "frontend/web/assets"
+        ]
+    }
+}
