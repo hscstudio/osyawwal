@@ -2,7 +2,7 @@
 namespace frontend\controllers;
 
 use Yii;
-use common\models\LoginForm;
+use frontend\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
@@ -78,7 +78,8 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            //return $this->goBack();
+			return $this->redirect(['./student/student/profile']);
         } else {
             return $this->render('login', [
                 'model' => $model,

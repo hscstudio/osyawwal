@@ -9,12 +9,26 @@ $params = array_merge(
 return [
     'id' => 'app-frontend',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => ['log','heart'],
 	'homeUrl' => '/github/osyawwal',
     'controllerNamespace' => 'frontend\controllers',
+	'modules'=>[
+		'heart' => [
+            'class' => 'hscstudio\heart\Module',
+            'features'=>[
+                // datecontrol (kartik), gridview (kartik), gii, 
+                'datecontrol'=>true,// use false for not use it
+                'gridview'=>true,// use false for not use it
+				'privilege'=>false,
+            ],
+        ],
+		'student' => [
+            'class' => 'frontend\modules\student\Module',
+        ],
+	],
     'components' => [
         'user' => [
-            'identityClass' => 'common\models\User',
+            'identityClass' => 'frontend\models\Student',
             'enableAutoLogin' => true,
 			'identityCookie' => [
 			  'name' => '_frontendUser', // unique for backend
@@ -39,6 +53,10 @@ return [
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+			'suffix' => '.aspx',
+			'rules' => [
+				['class' => 'hscstudio\heart\helpers\UrlRule', 'connectionID' => 'db', /* ... */],
+			],
         ],
     ],
     'params' => $params,

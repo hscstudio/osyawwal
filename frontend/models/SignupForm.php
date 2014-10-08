@@ -1,7 +1,8 @@
 <?php
 namespace frontend\models;
 
-use common\models\User;
+use frontend\models\Person;
+use frontend\models\Student;
 use yii\base\Model;
 use Yii;
 
@@ -22,13 +23,13 @@ class SignupForm extends Model
         return [
             ['username', 'filter', 'filter' => 'trim'],
             ['username', 'required'],
-            ['username', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This username has already been taken.'],
+            ['username', 'unique', 'targetClass' => '\frontend\models\Student', 'message' => 'This username has already been taken.'],
             ['username', 'string', 'min' => 2, 'max' => 255],
 
             ['email', 'filter', 'filter' => 'trim'],
             ['email', 'required'],
             ['email', 'email'],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => 'This email address has already been taken.'],
+            ['email', 'unique', 'targetClass' => '\frontend\models\Person', 'message' => 'This email address has already been taken.'],
 
             ['password', 'required'],
             ['password', 'string', 'min' => 6],
@@ -43,9 +44,16 @@ class SignupForm extends Model
     public function signup()
     {
         if ($this->validate()) {
-            $user = new User();
-            $user->username = $this->username;
-            $user->email = $this->email;
+			$person = new Person();
+			$person->name = $this->username;     
+			$person->email = $this->email;
+			$person->nid = $this->username;
+			$person->status = 1;
+			$person->save();
+			
+            $user = new Student();
+			$user->person_id = $person->id;
+            $user->username = $this->username;            
             $user->setPassword($this->password);
             $user->generateAuthKey();
             $user->save();
