@@ -83,6 +83,7 @@ class ProgramController extends Controller
 		$renders['model'] = $model;	
 		
         if ($model->load(Yii::$app->request->post())){ 
+			$model->status = 1;
 			$model->satker = 'current';
 			/* $model->stage = implode(',',$model->stage); */
 			if($model->save()) {
