@@ -32,7 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
 				'format'=>'raw',
 				'value' => function ($data){
 					return Html::a($data->name,'#',[
-						'title'=>$data->description.'<hr>'.$data->training->note,
+						'title'=>$data->description.'<br>'.$data->training->note,
 						'data-toggle'=>"tooltip",
 						'data-placement'=>"top",
 						'data-html'=>'true',

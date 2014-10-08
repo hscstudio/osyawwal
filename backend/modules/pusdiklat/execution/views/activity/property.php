@@ -8,8 +8,6 @@ use kartik\grid\GridView;
 use yii\helpers\Url;
 use kartik\widgets\Select2;
 use yii\helpers\ArrayHelper;
-/* @var $this yii\web\View */
-/* @var $model backend\models\Activity */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
@@ -92,7 +90,6 @@ $this->params['breadcrumbs'][] = $this->title;
 			<div class="tab-pane fade" id="subject">
 				<?= GridView::widget([
 					'dataProvider' => $subject,
-					//'filterModel' => $searchModel,
 					'columns' => [
 						['class' => 'kartik\grid\SerialColumn'],
 						[
@@ -136,11 +133,11 @@ $this->params['breadcrumbs'][] = $this->title;
 							'value' => function ($data){
 								if($data->test==1) {
 									$icon='<span class="glyphicon glyphicon-check"></span>';
-									return Html::a($icon,'#',['class'=>'label label-default','data-toggle'=>'tooltip','data-pjax'=>"0",'title'=>'Diklat dengan Ujian Akhir']);
+									return Html::tag('span',$icon,['class'=>'label label-default','data-toggle'=>'tooltip','data-pjax'=>"0",'title'=>'Diklat dengan Ujian Akhir']);
 								}
 								else{
 									$icon='<span class="glyphicon glyphicon-minus"></span>';
-									return Html::a($icon,'#',['class'=>'badge','data-toggle'=>'tooltip','data-pjax'=>"0",'title'=>'Diklat tanpa Ujian Akhir']);
+									return Html::tag('span',$icon,['class'=>'badge','data-toggle'=>'tooltip','data-pjax'=>"0",'title'=>'Diklat tanpa Ujian Akhir']);
 								}
 							},
 						],
@@ -179,7 +176,8 @@ $this->params['breadcrumbs'][] = $this->title;
 						
 					],
 					'panel' => [
-						'before'=>'',							
+						'heading'=>'<h3 class="panel-title"><i class="fa fa-fw fa-book"></i></h3>',
+						'before'=>'',
 						'after'=>'',
 						'showFooter'=>false
 					],
@@ -190,7 +188,6 @@ $this->params['breadcrumbs'][] = $this->title;
 			<div class="tab-pane fade" id="document">
 				<?= GridView::widget([
 					'dataProvider' => $document,
-					//'filterModel' => $searchModel,
 					'columns' => [
 						['class' => 'kartik\grid\SerialColumn'],
 						[
@@ -239,6 +236,7 @@ $this->params['breadcrumbs'][] = $this->title;
 						
 					],
 					'panel' => [
+						'heading'=>'<h3 class="panel-title"><i class="fa fa-fw fa-file-text-o"></i></h3>',
 						'before'=>'',							
 						'after'=>'',
 						'showFooter'=>false
