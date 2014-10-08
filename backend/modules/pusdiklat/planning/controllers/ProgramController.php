@@ -71,11 +71,10 @@ class ProgramController extends Controller
 			]);
     }
 
-    /**
-     * Creates a new Program model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
+   
+
+
+   	
     public function actionCreate()
     {
         $model = new Program();
@@ -84,13 +83,13 @@ class ProgramController extends Controller
 		
         if ($model->load(Yii::$app->request->post())){ 
 			$model->satker = 'current';
-			/* $model->stage = implode(',',$model->stage); */
+			$model->status = 1; // Ngeset nilai default untuk status, sementara, soalnya modelnya lagi dipake
 			if($model->save()) {
-				Yii::$app->getSession()->setFlash('success', 'New data have saved.');
-				return $this->redirect(['view', 'id' => $model->id]);
+				Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>New data have saved.');
+				return $this->redirect(['index']);
 			}
 			else{
-				Yii::$app->getSession()->setFlash('error', 'New data is not saved.');
+				Yii::$app->getSession()->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>New data is not saved.');
 				return $this->render('create', $renders);
 			}            
         } else {
@@ -117,12 +116,12 @@ class ProgramController extends Controller
 			$model->satker = 'current';
 			/* $model->stage = implode(',',$model->stage); */
             if($model->save()) {
-				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
+				Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Data have updated.');
 				
 				return $this->redirect(['view', 'id' => $model->id]);
 			}
 			else{
-				Yii::$app->getSession()->setFlash('error', 'Data is not updated.');
+				Yii::$app->getSession()->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Data is not updated.');
 				return $this->render('update', $renders);
 			}
 			
@@ -178,7 +177,7 @@ class ProgramController extends Controller
         if ($model->load(Yii::$app->request->post())) {
 			$model->satker = 'current';
             if($model->save()) {
-				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
+				Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Data have updated.');
 				$uploaded_files = [];					
 				foreach($object_file_array as $object_file=>$label){
 					$uploaded_files[$object_file] = \yii\web\UploadedFile::getInstance($files[$object_file], 'file_name['.$object_file.']');						
@@ -202,7 +201,7 @@ class ProgramController extends Controller
 				return $this->redirect(['view', 'id' => $model->id]);
 			}
 			else{
-				Yii::$app->getSession()->setFlash('error', 'Data is not updated.');
+				Yii::$app->getSession()->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Data is not updated.');
 				return $this->render('validation', $renders);
 			}
 			
@@ -253,7 +252,7 @@ class ProgramController extends Controller
 				$person_id = (int)Yii::$app->request->post('ObjectPerson')[$object_person]['person_id'];
 				Heart::objectPerson($object_people[$object_person],$person_id,'program',$id,$object_person);
 			}	
-			Yii::$app->getSession()->setFlash('success', 'Pic have updated.');
+			Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Pic have updated.');
 			if (!Yii::$app->request->isAjax) {
 				return $this->redirect(['view', 'id' => $model->id]);	
 			}
@@ -277,10 +276,10 @@ class ProgramController extends Controller
     public function actionDelete($id)
     {
 		if($this->findModel($id)->delete()) {
-			Yii::$app->getSession()->setFlash('success', 'Data have deleted.');
+			Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Data have deleted.');
 		}
 		else{
-			Yii::$app->getSession()->setFlash('error', 'Data is not deleted.');
+			Yii::$app->getSession()->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Data is not deleted.');
 		}
         return $this->redirect(['index']);
     }
