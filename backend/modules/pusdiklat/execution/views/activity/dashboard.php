@@ -109,7 +109,26 @@ $this->params['breadcrumbs'][] = $this->title;
 			?>
 			</div>
 			
-			
+			<div class="col-md-3">
+			<?php
+			Box::begin([
+				'type'=>'small', // ,small, solid, tiles
+				'bgColor'=>'purple', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bodyOptions' => [],
+				'icon' => 'fa fa-fw fa-money',
+				'link' => ['honorarium','id'=>$model->id],
+				'footerOptions' => [
+					'class' => 'dashboard-hide',
+				],
+				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
+			]);
+			?>
+			<h3>Honorarium</h3>
+			<p>Honorarium of Training</p>
+			<?php
+			Box::end();
+			?>
+			</div>
 		</div>		
 	</div>
 </div>

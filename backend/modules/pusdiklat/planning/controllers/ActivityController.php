@@ -89,7 +89,6 @@ class ActivityController extends Controller
 			->orderBy(['year'=>'DESC'])
 			->groupBy(['year'])
 			->currentSatker()
-			->active()
 			->asArray()
 			->all(), 'year', 'year');
 		$year_training['all']='All'	;

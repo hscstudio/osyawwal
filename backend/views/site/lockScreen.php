@@ -20,10 +20,9 @@ $this->params['breadcrumbs'][] = $this->title;
 				<div class="col-lg-12">
 					<?php $form = ActiveForm::begin([
 						'id' => 'login-form',
-						'action' => ['site/login'],
+						'action' => ['site/login','previous'=>$previous],
 					]); ?>
-						<?php
-						
+						<?php						
 						echo Html::activeHiddenInput($model, 'username');
 						?>
 						<h1><?= $model->username ?></h1>

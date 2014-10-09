@@ -75,7 +75,7 @@ class SiteController extends Controller
         return $this->render('index');
     }
 
-    public function actionLogin()
+    public function actionLogin($previous="")
     {
         if (!\Yii::$app->user->isGuest) {
             return $this->goHome();
@@ -83,7 +83,12 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+			if(!empty($previous)){
+				return $this->redirect($previous);
+			}
+			else{
+				return $this->goBack();
+			}
         } else {
             return $this->render('login', [
                 'model' => $model,
@@ -98,20 +103,19 @@ class SiteController extends Controller
         return $this->goHome();
     }
 	
-	public function actionLockScreen()
+	public function actionLockScreen($previous)
     {
 		if(isset(Yii::$app->user->identity->username)){
 			// save current username	
 			$username = Yii::$app->user->identity->username;
-			
 			// force logout		
 			Yii::$app->user->logout();
-			
 			// render form lockscreen
 			$model = new LoginForm(); 
 			$model->username = $username;	//set default value	
 			return $this->render('lockScreen', [
 				'model' => $model,
+				'previous' => $previous,
 			]);  
         }
 		else{

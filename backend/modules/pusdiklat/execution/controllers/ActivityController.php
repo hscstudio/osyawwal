@@ -27,6 +27,10 @@ use backend\modules\pusdiklat\execution\models\TrainingClassStudentSearch;
 use backend\models\TrainingStudent;
 use backend\modules\pusdiklat\execution\models\TrainingStudentSearch;
 
+use backend\models\TrainingSchedule;
+use backend\modules\pusdiklat\execution\models\TrainingScheduleSearch;
+use backend\modules\pusdiklat\execution\models\TrainingScheduleExtSearch;
+
 use backend\models\Student;
 use backend\modules\pusdiklat\execution\models\StudentSearch;
 
@@ -118,11 +122,9 @@ class ActivityController extends Controller
 			->orderBy(['year'=>'DESC'])
 			->groupBy(['year'])
 			->currentSatker()
-			->active()
 			->asArray()
 			->all(), 'year', 'year');
-		$year_training['all']='All'	;
-		
+		$year_training['all']='All'	; 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -1549,4 +1551,314 @@ class ActivityController extends Controller
 		
     } 
 
+	/**
+     * Lists all Room models.
+     * @return mixed
+     */
+    public function actionClassSchedule($id, $class_id,$start="",$end="")
+    {
+		$activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+
+		if(empty($start)){
+			$start = $class->training->activity->start;
+		}
+		
+		if(empty($end) or $end<$start){
+			$end = $start.' 23:59:59';
+		}
+		$searchModel = new TrainingScheduleSearch();
+		$queryParams['TrainingScheduleSearch']=[				
+			'training_class_id'=>$class_id,
+			'startDate' => $start,
+			'endDate'=>$end,
+		];		
+		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+        $dataProvider = $searchModel->search($queryParams);
+		$dataProvider->getSort()->defaultOrder = ['start'=>SORT_ASC,'end'=>SORT_ASC];
+
+		$trainingScheduleExtSearch = new TrainingScheduleExtSearch([
+			'startDate' => date('Y-m-d',strtotime($start)),
+			'scheduleDate' => date('Y-m-d',strtotime($start)),
+		]);
+		
+		// GET ALL TRAINING YEAR
+		if (Yii::$app->request->isAjax){
+			return $this->renderAjax('classSchedule', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'activity'=>$activity,
+				'class'=>$class,
+				'start'=>$start,
+				'end'=>$end,
+				'trainingScheduleExtSearch' => $trainingScheduleExtSearch
+			]);
+		}
+		else{
+			return $this->render('classSchedule', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'activity'=>$activity,
+				'class'=>$class,
+				'start'=>$start,
+				'end'=>$end,
+				'trainingScheduleExtSearch' => $trainingScheduleExtSearch
+			]);
+		}
+    }
+	
+	public function actionClassScheduleMaxTime($id, $class_id,$start=""){
+		$start = date('Y-m-d',strtotime($start)); 
+		$end =  date('Y-m-d',(strtotime($start)+ 60*60*24));
+		$trainingSchedule = TrainingSchedule::find()
+				->where('
+					(
+						start >= :start AND 
+						end <= :end
+					)
+					AND 
+						training_class_id = :class_id
+					AND
+					status = :status
+				',
+				[
+					':start' => $start,
+					':end' => $end,
+					':class_id' => $class_id,
+					':status' => 1,
+				])
+				->orderBy('end DESC')
+				->one();
+		if($trainingSchedule!=null)
+			return date('H:i',strtotime($trainingSchedule->end));		
+		else
+			return '08:00';		
+	}
+	
+	public function actionAddActivityClassSchedule($id, $class_id) 
+    { 	
+		$activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		if (Yii::$app->request->isAjax){
+			// PREPARING DATA
+			$post = Yii::$app->request->post('TrainingScheduleExtSearch');
+			$start = date('Y-m-d H:i',strtotime($post['startDate'].' '.$post['startTime'])); 
+			$training_class_subject_id = $post['training_class_subject_id'];
+			$activity_room_id =  $post['activity_room_id'];
+			$activity_name = "";
+			$pic = "";
+			$hours = 0;
+			$minutes = 0;
+			
+			//CHECKING SATKER
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			if ($satker_id!=$activity->satker_id){
+				die('|0|You have not privileges');
+			}
+			
+			if(empty($training_class_subject_id) or $training_class_subject_id==0){
+				die('|0|You must select activity!');
+			}
+			else if ($training_class_subject_id>0){
+				$hours = $post['hours'];
+				if($hours>0){
+					$minutes = (int)($hours * 45);
+				}
+				else{
+					die('|0|Hours have more than 0');
+				}
+			}
+			else{
+				$minutes = (int)$post['minutes'];
+				if($minutes>0){
+					$activity_name = $post['activity'];
+					$pic = $post['pic'];
+				}
+				else{
+					die('|0|Minutes have more than 0');
+				}
+			}
+			$training_class_subject_id=(int)$training_class_subject_id;
+			$end = date('Y-m-d H:i',strtotime($start)+($minutes*60));
+			$activity_room_id=(int)$activity_room_id;
+			// CHECKING CONSTRAIN TIME
+			$startSearch = $start + 1; // [08:00 - 09:00, 09:00 - 10:00] not exact between :)
+			$endSearch = $end - 1;
+			$trainingSchedule = TrainingSchedule::find()
+				->where('
+					((start between :start AND :end)
+						OR (end between :start AND :end))
+					AND 
+						training_class_id = :training_class_id
+					AND
+					status = :status
+				',
+				[
+					':start' => $startSearch,
+					':end' => $endSearch,
+					':training_class_id' => $class_id,
+					':status' => 1,
+				]);
+				
+			// IS NOT CONSTRAIN			
+			if($trainingSchedule->count()==0){ 
+				// PREPARING SAVE
+				$model = new TrainingSchedule(); 
+				$model->training_class_id=$class_id;
+				$model->training_class_subject_id = $training_class_subject_id;
+				$model->activity_room_id = $activity_room_id;		
+				$model->activity = $activity_name;
+				$model->pic = $pic;
+				$model->hours = $hours;
+				$model->start = $start;
+				$model->end = $end;
+				$model->status = 1;
+			
+				if($model->save()) {
+					Yii::$app->session->setFlash('success', 'Activity have Added');
+					die('|1|Activity have Added|'.date('Y-m-d',strtotime($start)).'|'.date('H:i',strtotime($end)));
+					
+				}
+				else{
+					die('|0|There are some error');
+				}
+			}
+			else{
+				die('|0|Constrain time, please change time!');
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', 'Only for ajax request');
+			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
+		}
+    } 
+	
+	 /**
+     * Lists all TrainingClass models.
+     * @return mixed
+     */
+    public function actionHonorarium($id)
+    {
+        $model = $this->findModel($id);
+		$searchModel = new TrainingClassSearch([
+			'training_id' => $id,
+		]);
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        return $this->render('honorarium', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+			'model' => $model,
+        ]);
+    }
+	
+	public function actionPrepareHonorarium($id, $class_id)
+    {				
+		$activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		
+		/* $dataProvider = new \yii\data\ActiveDataProvider([
+			'query' => \backend\models\TrainingScheduleTrainer::find()
+				->joinWith(['trainingSchedule'])
+				->where([
+					'tb_training_schedule_id'=>\backend\models\TrainingSchedule::find()
+						->select('id')
+						->where([
+							'tb_training_class_id'=>$tb_training_class_id,
+							'status'=>1,					
+						])
+						->andWhere('tb_training_class_subject_id>0')
+						->groupBy('tb_training_class_subject_id')
+						->column(),
+					TrainingScheduleTrainer::tableName().'.status'=>1,
+					'ref_trainer_type_id'=>[0], //Only PENGAJAR not ASISTEN & PENCERAMAH
+				])
+				->groupBy('tb_training_class_subject_id,tb_trainer_id'),				
+			'pagination' => [
+				'pageSize' => 20,
+			],
+			'sort'=> ['defaultOrder' => ['tb_training_schedule_id'=>SORT_ASC]]
+		]);
+		$trainingClass=\backend\models\TrainingClass::findOne($tb_training_class_id);
+		$sbu = \backend\models\Sbu::find()->where(['name'=>'honor_persiapan_mengajar','status'=>1])->one();
+        return $this->render('prepare', [
+			'dataProvider' => $dataProvider,
+			'trainingClass' => $trainingClass, 
+			'sbu' => $sbu,
+        ]); */
+    }
+	
+	/* public function actionTransport($tb_training_class_id)
+    {			
+		$ref_satker_id = Yii::$app->user->identity->employee->ref_satker_id;
+		$dataProvider = new ActiveDataProvider([
+			'query' => TrainingScheduleTrainer::find()
+				->select(TrainingScheduleTrainer::tableName().'.*,'.Employee::tableName().'.ref_satker_id')
+				->joinWith(['trainer', 'trainer.employee','trainingSchedule'])
+				->where([
+					'tb_training_schedule_id'=>TrainingSchedule::find()
+						->select('id')
+						->where([
+							'tb_training_class_id'=>$tb_training_class_id,
+							'status'=>1,					
+						])
+						->andWhere('tb_training_class_subject_id>0')
+						//->groupBy('tb_training_class_subject_id')
+						->column(),
+					TrainingScheduleTrainer::tableName().'.status'=>1,
+				])
+				->andWhere(
+					'('.Employee::tableName().'.ref_satker_id IS NOT NULL AND '.Employee::tableName().'.ref_satker_id!='.$ref_satker_id.')'.
+					' OR '.
+					Employee::tableName().'.ref_satker_id IS NULL'
+				)
+				->groupBy('tb_training_class_subject_id,tb_trainer_id')
+				,	
+			'pagination' => [
+				'pageSize' => 20,
+			],
+			'sort'=> ['defaultOrder' => ['tb_training_schedule_id'=>SORT_ASC]]
+		]);
+		$trainingClass=TrainingClass::findOne($tb_training_class_id);
+		$sbu = Sbu::find()->where(['name'=>'honor_transport_dalam_kota','status'=>1])->one();
+        return $this->render('transport', [
+			'dataProvider' => $dataProvider,
+			'trainingClass' => $trainingClass, 
+			'sbu' => $sbu,
+        ]);
+    }
+	
+	public function actionTraining($tb_training_class_id)
+    {			
+		$ref_satker_id = Yii::$app->user->identity->employee->ref_satker_id;
+		$dataProvider = new ActiveDataProvider([
+			'query' => TrainingScheduleTrainer::find()
+				->joinWith(['trainer', 'trainer.employee','trainingSchedule'])
+				->where([
+					'tb_training_schedule_id'=>TrainingSchedule::find()
+						->select('id')
+						->where([
+							'tb_training_class_id'=>$tb_training_class_id,
+							'status'=>1,					
+						])
+						->andWhere('tb_training_class_subject_id>0')
+						//->groupBy('tb_training_class_subject_id')
+						->column(),
+					TrainingScheduleTrainer::tableName().'.status'=>1,
+				])
+				->groupBy('tb_training_class_subject_id,tb_trainer_id')
+				,		
+			'pagination' => [
+				'pageSize' => 20,
+			],
+			'sort'=> ['defaultOrder' => ['tb_training_schedule_id'=>SORT_ASC,'ref_trainer_type_id'=>SORT_ASC]]
+		]);
+
+		$trainingClass=TrainingClass::findOne($tb_training_class_id);
+		$sbus = ArrayHelper::map(Sbu::find()->where(['status'=>1])->all(),'name','value');
+        return $this->render('training', [
+			'dataProvider' => $dataProvider,
+			'trainingClass' => $trainingClass, 
+			'sbus' => $sbus,
+        ]);
+    } */
 }

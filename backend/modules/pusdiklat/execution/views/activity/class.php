@@ -196,6 +196,44 @@ $this->params['breadcrumbs'][] = $this->title;
 					} */
 				}
 			],
+			[
+				'format' => 'raw',
+				'label' => 'Schedule',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'80px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+				'value' => function ($data)
+				{
+					return Html::a(' <i class="fa fa-fw fa-table"></i>', 
+							[
+								'class-schedule',
+								'id'=>$data->training_id,
+								'class_id'=>$data->id,
+							], 
+							[
+								'title'=>'Klik to set schedule',
+								'class' => 'label label-info',
+								'data-pjax'=>0,
+								'data-toggle'=>'tooltip',
+								'data-confirm'=>'Process!'
+							]);							
+				}
+			],
+			[
+				'format' => 'raw',
+				'attribute' => 'status',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'80px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+				'value' => function ($data){
+					$icon = ($data->status==1)?'<span class="glyphicon glyphicon-ok"></span>':'<span class="glyphicon glyphicon-remove"></span>';
+					return $icon;						
+				}
+			],
             [
 				'class' => 'kartik\grid\ActionColumn',
 				'template' => '{delete}',
