@@ -4,17 +4,17 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\TrainingStudent */
+/* @var $model backend\models\ActivityRoom */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
-$this->title = 'Update #'.$model->id;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Training Students'), 'url' => ['index']];
+$this->title = 'Update #'.$model->activity_id;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Activity Rooms'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="training-student-view  panel panel-default">
+<div class="activity-room-view  panel panel-default">
 
    <div class="panel-heading"> 
 		<div class="pull-right">
@@ -27,8 +27,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
 		<!--
 		<p>
-			<?= Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-			<?= Html::a(Yii::t('app', 'Delete'), ['delete', 'id' => $model->id], [
+			<?= Html::a(Yii::t('app', 'Update'), ['update', 'activity_id' => $model->activity_id, 'room_id' => $model->room_id], ['class' => 'btn btn-primary']) ?>
+			<?= Html::a(Yii::t('app', 'Delete'), ['delete', 'activity_id' => $model->activity_id, 'room_id' => $model->room_id], [
 				'class' => 'btn btn-danger',
 				'data' => [
 					'confirm' => Yii::t('app', 'Are you sure you want to delete this item?'),
@@ -40,9 +40,11 @@ $this->params['breadcrumbs'][] = $this->title;
 			<?= DetailView::widget([
 				'model' => $model,
 				'attributes' => [
-		            'id',
-            'training_id',
-            'student_id',
+		            'activity_id',
+            'room_id',
+            'start',
+            'end',
+            'note',
             'status',
             'created',
             'created_by',

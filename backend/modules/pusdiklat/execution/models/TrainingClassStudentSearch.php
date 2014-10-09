@@ -12,7 +12,8 @@ use backend\models\TrainingClassStudent;
  */
 class TrainingClassStudentSearch extends TrainingClassStudent
 {
-    /**
+    public $name,$nip;
+	/**
      * @inheritdoc
      */
     public function rules()
@@ -21,6 +22,7 @@ class TrainingClassStudentSearch extends TrainingClassStudent
             [['id', 'training_id', 'training_class_id', 'training_student_id', 'head_class', 'status', 'created_by', 'modified_by'], 'integer'],
             [['number', 'created', 'modified'], 'safe'],
             [['activity', 'presence', 'pre_test', 'post_test', 'test'], 'number'],
+			[['name','nip'], 'safe'],
         ];
     }
 
@@ -45,11 +47,11 @@ class TrainingClassStudentSearch extends TrainingClassStudent
         $query = TrainingClassStudent::find()
 			->joinWith('trainingStudent')
 			->joinWith('trainingStudent.student')
-			->joinWith('trainingStudent.student.person');
+			->joinWith('trainingStudent.student.person')
+			->orderBy('name');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-			'sort' => ['defaultOrder'=>'person.name asc']
         ]);
 
         if (!($this->load($params) && $this->validate())) {
@@ -75,7 +77,8 @@ class TrainingClassStudentSearch extends TrainingClassStudent
         ]);
 
         $query->andFilterWhere(['like', 'number', $this->number]);
-
+		$query->andFilterWhere(['like', 'name', $this->name]);
+		$query->andFilterWhere(['like', 'nip', $this->nip]);
         return $dataProvider;
     }
 }

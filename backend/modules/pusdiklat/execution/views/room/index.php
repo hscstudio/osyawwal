@@ -6,16 +6,16 @@ use kartik\grid\GridView;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $searchModel backend\modules\pusdiklat\execution\models\TrainingClassSubjectSearch */
+/* @var $searchModel backend\modules\pusdiklat\execution\models\RoomSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
-$this->title = Yii::t('app', 'Training Class Subjects');
+$this->title = Yii::t('app', 'Rooms');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="training-class-subject-index">
+<div class="room-index">
 	
 <!--
     <h1><?= Html::encode($this->title) ?></h1>
@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a(Yii::t('app', 'Create {modelClass}', [
-    'modelClass' => 'Training Class Subject',
+    'modelClass' => 'Room',
 ]), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 -->
@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
             // 'id',
             
 				[
-					'attribute' => 'training_class_id',
+					'attribute' => 'satker_id',
 					'vAlign'=>'middle',
 					'hAlign'=>'center',
 					'headerOptions'=>['class'=>'kv-sticky-column'],
@@ -45,7 +45,7 @@ $this->params['breadcrumbs'][] = $this->title;
 				],
             
 				[
-					'attribute' => 'program_subject_id',
+					'attribute' => 'code',
 					'vAlign'=>'middle',
 					'hAlign'=>'center',
 					'headerOptions'=>['class'=>'kv-sticky-column'],
@@ -53,12 +53,32 @@ $this->params['breadcrumbs'][] = $this->title;
 				],
             
 				[
-					'attribute' => 'status',
+					'attribute' => 'name',
 					'vAlign'=>'middle',
 					'hAlign'=>'center',
 					'headerOptions'=>['class'=>'kv-sticky-column'],
 					'contentOptions'=>['class'=>'kv-sticky-column'],					
 				],
+            
+				[
+					'attribute' => 'capacity',
+					'vAlign'=>'middle',
+					'hAlign'=>'center',
+					'headerOptions'=>['class'=>'kv-sticky-column'],
+					'contentOptions'=>['class'=>'kv-sticky-column'],					
+				],
+            
+				[
+					'attribute' => 'owner',
+					'vAlign'=>'middle',
+					'hAlign'=>'center',
+					'headerOptions'=>['class'=>'kv-sticky-column'],
+					'contentOptions'=>['class'=>'kv-sticky-column'],					
+				],
+            // 'computer',
+            // 'hostel',
+            // 'address',
+            // 'status',
             // 'created',
             // 'created_by',
             // 'modified',

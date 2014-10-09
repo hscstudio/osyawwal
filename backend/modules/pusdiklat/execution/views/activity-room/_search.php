@@ -4,26 +4,30 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model backend\modules\pusdiklat\execution\models\TrainingStudentSearch */
+/* @var $model backend\modules\pusdiklat\execution\models\ActivityRoomSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="training-student-search">
+<div class="activity-room-search">
 
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'id') ?>
+    <?= $form->field($model, 'activity_id') ?>
 
-    <?= $form->field($model, 'training_id') ?>
+    <?= $form->field($model, 'room_id') ?>
 
-    <?= $form->field($model, 'student_id') ?>
+    <?= $form->field($model, 'start') ?>
 
-    <?= $form->field($model, 'status') ?>
+    <?= $form->field($model, 'end') ?>
 
-    <?= $form->field($model, 'created') ?>
+    <?= $form->field($model, 'note') ?>
+
+    <?php // echo $form->field($model, 'status') ?>
+
+    <?php // echo $form->field($model, 'created') ?>
 
     <?php // echo $form->field($model, 'created_by') ?>
 

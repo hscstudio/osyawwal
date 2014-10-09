@@ -4,19 +4,19 @@ use yii\helpers\Html;
 
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\TrainingStudent */
+/* @var $model backend\models\ActivityRoom */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
 $this->title = Yii::t('app', 'Create {modelClass}', [
-    'modelClass' => 'Training Student',
+    'modelClass' => 'Activity Room',
 ]);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Training Students'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Activity Rooms'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="training-student-create  panel panel-default">
+<div class="activity-room-create  panel panel-default">
 
     <div class="panel-heading"> 
 		<div class="pull-right">

@@ -139,6 +139,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 </div>
 
+<!--
 <div class="well">
 	<p class="lead">
 	Jika data peserta tidak ditemukan, maka Anda di perkenankan untuk memasukkan data peserta baru.
@@ -152,3 +153,4 @@ $this->params['breadcrumbs'][] = $this->title;
 	?>
 	</p>
 </div>
+-->

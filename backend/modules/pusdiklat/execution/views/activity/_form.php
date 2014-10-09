@@ -68,14 +68,31 @@ use kartik\checkbox\CheckboxX;
 				<?= $form->field($model, 'location[1]')->textInput(['maxlength' => 250])->label('Catatan Terkait Lokasi'); ?>
 				</div>
 			</div>
-			
-			<?= $form->field($model, 'hostel')->widget(SwitchInput::classname(), [
-				'pluginOptions' => [
-					'onText' => 'Ya',
-					'offText' => 'Tidak',
-				]
-			])->label('Diasramakan?') ?>
-			
+			<div class="row clearfix">
+				<div class="col-md-3">
+				<?= $form->field($model, 'hostel')->widget(SwitchInput::classname(), [
+					'pluginOptions' => [
+						'onText' => 'Ya',
+						'offText' => 'Tidak',
+					]
+				])->label('Diasramakan?') ?>
+				</div>
+				<div class="col-md-3">	
+				<?php
+				$data = [
+						'1'=>'READY',
+						'2'=>'EXECUTE',
+						'3'=>'CANCEL'
+				];
+				echo $form->field($model, 'status')->widget(Select2::classname(), [
+					'data' => $data,
+					'options' => ['placeholder' => 'Choose Status ...'],
+					'pluginOptions' => [
+						'allowClear' => true,
+					],
+				]); ?>
+				</div>
+			</div>
 			<a class="btn btn-default" onclick="$('#tab_wizard a[href=#training]').tab('show')">
 				Next 
 				<i class="fa fa-fw fa-arrow-circle-o-right"></i>

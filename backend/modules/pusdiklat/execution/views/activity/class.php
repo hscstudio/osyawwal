@@ -6,6 +6,7 @@ use kartik\grid\GridView;
 use yii\helpers\Url;
 use yii\helpers\Inflector;
 use hscstudio\heart\widgets\Box;
+use kartik\widgets\Select2;
 
 /* @var $this yii\web\View */
 /* @var $searchModel backend\modules\pusdiklat\execution\models\TrainingClassSearch */
@@ -206,7 +207,7 @@ $this->params['breadcrumbs'][] = $this->title;
 									[
 										'class'=>'btn btn-default btn-xs',
 										'data-pjax'=>'0',
-										'data-confirm'=>'Areyou sure you want delete this item!',
+										'data-confirm'=>'Are you sure you want delete this item!',
 										'data-method'=>'post',
 									]
 								);
@@ -238,4 +239,93 @@ $this->params['breadcrumbs'][] = $this->title;
 		'hover'=>true,
     ]); ?>
 
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+	<i class="glyphicon glyphicon-upload"></i> Get Random Student
+	</div>
+    <div class="panel-body">
+		<?php
+		$form = \yii\bootstrap\ActiveForm::begin([
+			'options'=>[
+				'id'=>'myform',
+				'onsubmit'=>'
+					
+				',
+			],
+			'action'=>[
+				'class','id'=>$model->id
+			], 
+		]);
+		?>
+		<div class="row clearfix">
+			<div class="col-md-2">
+			<?php
+			echo Html::beginTag('label',['class'=>'control-label']).'Stock'.Html::endTag('label');
+			echo Html::input('text','',$trainingStudentCount,['class'=>'form-control','disabled'=>'disabled','id'=>'stock']);
+			?>
+			</div>
+			<div class="col-md-2">
+			<?php
+			echo Html::beginTag('label',['class'=>'control-label']).'Jumlah'.Html::endTag('label');
+			echo Html::input('text','student','',['class'=>'form-control','id'=>'count']);
+			?>
+			</div>
+			<div class="col-md-3">
+			<?php
+			echo '<label class="control-label">Berdasarkan</label>';
+			echo Select2::widget([
+				'name' => 'baseon', 
+				'data' => [
+					'person.name' =>'Nama', 
+					'person.gender' => 'Gender', 
+					'object_reference.reference_id' => 'Unit',					
+				],
+				'options' => [
+					'placeholder' => 'Select base on ...', 
+					'class'=>'form-control', 
+					'multiple' => true,
+					'id'=>'baseon',
+				],
+			]);
+			?>
+			</div>
+			<div class="col-md-3">
+			<?php
+			echo Html::beginTag('label',['class'=>'control-label']).' '.Html::endTag('label');
+			echo Html::submitButton('Get', ['class' => 'btn btn-success','style'=>'display:block;']);
+			?>
+			</div>
+		</div>
+		<?php \yii\bootstrap\ActiveForm::end(); ?>
+		<?php
+		$this->registerJs("
+			$('#myform').on('beforeSubmit', function () {
+				var count = parseInt($('#count').val());
+				var stock = parseInt($('#stock').val());
+				var baseon = $('#baseon').val();
+				if(stock<=0 || isNaN(stock)){
+					alert('Tidak ada stock peserta!');
+					return false;
+				}
+				else if(count<=0 || isNaN(count)){
+					alert('Jumlah permintaan peserta tidak boleh nol!');
+					$('#count').select();
+					return false;
+				}
+				else if(stock<count){
+					alert('Jumlah permintaan tidak boleh melebihi stock peserta!'+x+y);
+					$('#count').select();
+					return false;
+				}			
+				else if(baseon==null){
+					alert('Dasar pengacakan harus ditentukan!');
+					$('#baseon').select();	
+					return false;					
+				}	
+			});
+		");
+		?>
+	</div>
 </div>

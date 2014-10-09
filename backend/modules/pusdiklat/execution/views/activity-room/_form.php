@@ -3,17 +3,23 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\TrainingClass */
+/* @var $model backend\models\ActivityRoom */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="training-class-form">
+<div class="activity-room-form">
 
     <?php $form = ActiveForm::begin(); ?>
 	<?= $form->errorSummary($model) ?> <!-- ADDED HERE -->
-    <?= $form->field($model, 'training_id')->textInput() ?>
+    <?= $form->field($model, 'activity_id')->textInput() ?>
 
-    <?= $form->field($model, 'class')->textInput(['maxlength' => 5]) ?>
+    <?= $form->field($model, 'room_id')->textInput() ?>
+
+    <?= $form->field($model, 'start')->textInput() ?>
+
+    <?= $form->field($model, 'end')->textInput() ?>
+
+    <?= $form->field($model, 'note')->textInput(['maxlength' => 255]) ?>
 
     <?= $form->field($model, 'status')->textInput() ?>
 

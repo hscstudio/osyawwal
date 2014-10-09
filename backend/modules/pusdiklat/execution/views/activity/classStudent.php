@@ -32,7 +32,9 @@ $this->params['breadcrumbs'][] = $this->title;
 ]), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 -->
-
+	<?php \yii\widgets\Pjax::begin([
+		'id'=>'pjax-gridview',
+	]); ?>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
@@ -40,6 +42,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'kartik\grid\SerialColumn'],
 			[
 				'header' => '<div style="text-align:center;">Name</div>',
+				'attribute'=>'name',
 				'vAlign'=>'middle',
 				'hAlign'=>'left',
 				'headerOptions'=>['class'=>'kv-sticky-column'],
@@ -54,7 +57,9 @@ $this->params['breadcrumbs'][] = $this->title;
 			[
 				'header' => '<div style="text-align:center;">NIP</div>',
 				'vAlign'=>'middle',
-				'hAlign'=>'left',
+				'attribute'=>'nip',
+				'width'=>'150px',
+				'hAlign'=>'center',
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'format'=>'raw',
@@ -97,6 +102,34 @@ $this->params['breadcrumbs'][] = $this->title;
 			],
 			[
 				'class' => 'kartik\grid\ActionColumn',
+				'template' => '{class} {delete}',
+				'buttons' => [
+					'delete' => function ($url, $model) {
+						$icon='<span class="fa fa-fw fa-trash"></span>';
+						return Html::a($icon,
+							['delete-class-student','id'=>$model->training_id,'class_id'=>$model->training_class_id,'training_class_student_id'=>$model->id],
+							[
+								'class'=>'btn btn-default btn-xs',
+								'data-pjax'=>'0',
+								'data-confirm'=>'Are you sure you want delete this item!',
+								'data-method'=>'post',
+							]
+						);
+					},
+					'class' => function ($url, $model) {
+						$icon='<span class="fa fa-fw fa-trello"></span>';
+						return Html::a($icon,
+							['change-class-student','id'=>$model->training_id,'class_id'=>$model->training_class_id,'training_class_student_id'=>$model->id],
+							[
+								'class'=>'modal-heart btn btn-default btn-xs',
+								'data-pjax'=>'0',
+								'modal-size'=>'modal-md',
+								'modal-title'=>'Move To Another Class',
+								
+							]
+						);
+					},
+				]
 			]
            /*  
 			[
@@ -180,7 +213,8 @@ $this->params['breadcrumbs'][] = $this->title;
 		'responsive'=>true,
 		'hover'=>true,
     ]); ?>
-
+	<?= \hscstudio\heart\widgets\Modal::widget() ?>
+	<?php \yii\widgets\Pjax::end(); ?>
 </div>
 
 <div class="panel panel-default">
@@ -191,7 +225,10 @@ $this->params['breadcrumbs'][] = $this->title;
 		<?php
 		$form = \yii\bootstrap\ActiveForm::begin([
 			'options'=>[
-				'id'=>'myform'
+				'id'=>'myform',
+				'onsubmit'=>'
+					
+				',
 			],
 			'action'=>[
 				'class-student','id'=>$activity->id,
@@ -225,7 +262,8 @@ $this->params['breadcrumbs'][] = $this->title;
 				'options' => [
 					'placeholder' => 'Select base on ...', 
 					'class'=>'form-control', 
-					'multiple' => true
+					'multiple' => true,
+					'id'=>'baseon',
 				],
 			]);
 			?>
@@ -241,14 +279,26 @@ $this->params['breadcrumbs'][] = $this->title;
 		<?php
 		$this->registerJs("
 			$('#myform').on('beforeSubmit', function () {
-				var x = $('#count').val().parseInt();
-				var y = $('#stock').val().parseInt();
-				if(y>=x & x>0){
-
-				}				
-				else{
-
-					$('#count').select();	
+				var count = parseInt($('#count').val());
+				var stock = parseInt($('#stock').val());
+				var baseon = $('#baseon').val();
+				if(stock<=0 || isNaN(stock)){
+					alert('Tidak ada stock peserta!');
+					return false;
+				}
+				else if(count<=0 || isNaN(count)){
+					alert('Jumlah permintaan peserta tidak boleh nol!');
+					$('#count').select();
+					return false;
+				}
+				else if(stock<count){
+					alert('Jumlah permintaan tidak boleh melebihi stock peserta!'+x+y);
+					$('#count').select();
+					return false;
+				}			
+				else if(baseon==null){
+					alert('Dasar pengacakan harus ditentukan!');
+					$('#baseon').select();	
 					return false;					
 				}	
 			});

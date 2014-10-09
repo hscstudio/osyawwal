@@ -181,28 +181,38 @@ $this->params['breadcrumbs'][] = $this->title;
 	</div>
     <div class="panel-body">
 		<div class="row clearfix">
-			<div class="col-md-4">
+			<div class="col-md-2">
 			Upload Student
+			</div>
+			<div class="col-md-2">
+			<?php
+			echo Html::a('template',
+						Url::to(['/file/download','file'=>'template/pusdiklat/execution/student_upload.xlsx']),
+						[
+							'class'=>'label label-default',
+							'data-pjax'=>'0',
+						]
+					);
+			?>
 			</div>
 			<div class="col-md-8">
 			<?php
-			echo Html::beginTag('div', ['class'=>'col-md-8']);
-				$form = \yii\bootstrap\ActiveForm::begin([
-					'options'=>['enctype'=>'multipart/form-data'],
-					'action'=>['import-student','id'=>$model->id], 
-				]);
-				echo \kartik\widgets\FileInput::widget([
-					'name' => 'importFile', 
-					//'options' => ['multiple' => true], 
-					'pluginOptions' => [
-						'previewFileType' => 'any',
-						'uploadLabel'=>"Import Excel",
-					]
-				]);
-				\yii\bootstrap\ActiveForm::end();
-			echo Html::endTag('div');
+			$form = \yii\bootstrap\ActiveForm::begin([
+				'options'=>['enctype'=>'multipart/form-data'],
+				'action'=>['import-student','id'=>$model->id], 
+			]);
+			echo \kartik\widgets\FileInput::widget([
+				'name' => 'importFile', 
+				//'options' => ['multiple' => true], 
+				'pluginOptions' => [
+					'previewFileType' => 'any',
+					'uploadLabel'=>"Import Excel",
+				]
+			]);
+			\yii\bootstrap\ActiveForm::end();
 			?>
 			</div>
+			
 		</div>
 	</div>
 </div>

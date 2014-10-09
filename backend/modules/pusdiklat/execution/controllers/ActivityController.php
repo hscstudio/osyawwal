@@ -4,7 +4,7 @@ namespace backend\modules\pusdiklat\execution\controllers;
 use Yii;
 use backend\models\Activity;
 use backend\modules\pusdiklat\execution\models\ActivitySearch;
-
+use yii\helpers\Html;
 use backend\models\Person;
 use backend\models\ObjectPerson;
 use backend\models\ObjectFile;
@@ -30,6 +30,12 @@ use backend\modules\pusdiklat\execution\models\TrainingStudentSearch;
 use backend\models\Student;
 use backend\modules\pusdiklat\execution\models\StudentSearch;
 
+use backend\models\Room;
+use backend\models\ActivityRoom;
+use backend\modules\pusdiklat\execution\models\ActivityRoomSearch;
+use backend\modules\pusdiklat\execution\models\ActivityRoomExtensionSearch;
+use backend\modules\pusdiklat\execution\models\RoomSearch;
+
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -37,7 +43,6 @@ use yii\helpers\ArrayHelper;
 use yii\data\ActiveDataProvider;
 
 use hscstudio\heart\helpers\Heart;
-
 use yii\data\ArrayDataProvider;
 /**
  * ActivityController implements the CRUD actions for Activity model.
@@ -427,11 +432,97 @@ class ActivityController extends Controller
 			'training_id' => $id,
 		]);
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+		
+		$subquery = TrainingClassStudent::find()
+			->select('training_student_id')
+			->where(['training_id' => $id]);
+		 
+		// fetch orders that are placed by customers who are older than 30  
+		$trainingStudentCount = TrainingStudent::find()
+			->where(['status'=>'1'])
+			->andWhere([
+				'not in', 'id', $subquery
+			])
+			->count();
+		
+		if (Yii::$app->request->post()){ 
+			$student = Yii::$app->request->post()['student'];
+			$baseon = 0;
+			if(isset(Yii::$app->request->post()['baseon'])) $baseon = Yii::$app->request->post()['baseon'];
+			$objectTrainingClass = TrainingClass::find()
+					->where([
+						'training_id' => $id,
+					]);
+			$trainingClassCount = (int) $objectTrainingClass->count();
+			
+			if($student>$trainingStudentCount){
+				Yii::$app->session->setFlash('error', 'Your request more than stock!');
+			}
+			else if($trainingClassCount==0){
+				Yii::$app->session->setFlash('error', 'There is no class!');
+			}
+			else if($baseon==0 or count($baseon)==0){
+				Yii::$app->session->setFlash('error', 'Select base on random!');
+			}
+			else{				
+				$baseon = implode(',',$baseon);
+				// select name, gender from person group by name, gender order by rand();
+				$part = (int) ($student / $trainingClassCount);
+				$residu = $student % $trainingClassCount;
+				$trainingClasses = $objectTrainingClass->all();
+				//die($part.' => '.$residu);
+				$idx = 1;
+				foreach($trainingClasses as $trainingClass){
+					$limit = $part;
+					if($idx == $trainingClassCount){
+						$limit += $residu; 
+					}
+					$trainingStudents = TrainingStudent::find()
+						->joinWith('student')
+						->joinWith('student.person')
+						->joinWith('student.person.unit')
+						->where(['training_student.status'=>'1'])
+						->andWhere([
+							'not in', 'training_student.id', $subquery
+						])
+						->groupBy($baseon)
+						->orderBy('rand()')
+						->limit($limit)
+						->asArray()
+						->all();
+					foreach ($trainingStudents as $trainingStudent){
+						$trainingClassStudent = new TrainingClassStudent([
+							'training_id'=>$id,
+							'training_class_id'=>$trainingClass->id,
+							'training_student_id'=>$trainingStudent['id'],
+							'status'=>1
+						]);
+						$trainingClassStudent->save();
+					}
+					$idx++;
+				}
+				
+				Yii::$app->session->setFlash('success', $student.' student added!');
+				
+				$subquery = TrainingClassStudent::find()
+					->select('training_student_id')
+					->where(['training_id' => $id]);
+				 
+				// fetch orders that are placed by customers who are older than 30  
+				$trainingStudentCount = TrainingStudent::find()
+					->where(['status'=>'1'])
+					->andWhere([
+						'not in', 'id', $subquery
+					])
+					->count();
+			}
+		}
+		
         return $this->render('class', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
 			'model' => $model,
+			'trainingStudentCount' => $trainingStudentCount
         ]);
     }
 	
@@ -1023,6 +1114,7 @@ class ActivityController extends Controller
 		];
 		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
 		$dataProvider = $searchModel->search($queryParams); 
+		/* $dataProvider->getSort()->defaultOrder = ['name'=>SORT_ASC]; */
 		
 		$subquery = TrainingClassStudent::find()
 			->select('training_student_id')
@@ -1043,7 +1135,7 @@ class ActivityController extends Controller
 			if($student>$trainingStudentCount){
 				Yii::$app->session->setFlash('error', 'Your request more than stock!');
 			}
-			else if( count($baseon)==0){
+			else if($baseon==0 or count($baseon)==0){
 				Yii::$app->session->setFlash('error', 'Select base on random!');
 			}
 			else{				
@@ -1095,5 +1187,366 @@ class ActivityController extends Controller
 			'trainingStudentCount' => $trainingStudentCount
         ]);
     }
+	
+	/**
+     * Deletes an existing TrainingClass model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionDeleteClassStudent($id, $class_id, $training_class_student_id)
+    {
+        $model = $this->findModelClassStudent($training_class_student_id);
+		$model->delete();
+		
+		Yii::$app->getSession()->setFlash('success', 'Data have deleted.');
+        return $this->redirect(['class-student', 'id' => $id, 'class_id' => $class_id]);
+    }
+	
+	protected function findModelClassStudent($id)
+    {
+        if (($model = TrainingClassStudent::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+	
+	public function actionChangeClassStudent($id, $class_id, $training_class_student_id)
+    {
+        $activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		$model = $this->findModelClassStudent($training_class_student_id);
+		$renders = [];
+		$renders['activity'] = $activity;
+		$renders['class'] = $class;
+		$renders['model'] = $model;
+		$trainingClass = TrainingClass::find()
+				->all();
+		$renders['trainingClass'] = $trainingClass;	
+		if (Yii::$app->request->post()) {			
+			$model->load(Yii::$app->request->post());
+			if($model->save()){
+				Yii::$app->getSession()->setFlash('success', 'Student have moved.');
+				if (!Yii::$app->request->isAjax){
+					return $this->redirect(['class-student', 'id' => $id, 'class_id'=>$class_id]);	
+				}
+				else{
+					echo 'Student have moved.';
+				}
+			}
+			else{
+				Yii::$app->getSession()->setFlash('failed', 'Student have not moved.');
+				if (!Yii::$app->request->isAjax) {
+					return $this->redirect(['class-student', 'id' => $id, 'class_id'=>$class_id]);	
+				}
+				else{
+					echo 'Student have not moved.';
+				}
+			}
+        } else {
+			if (Yii::$app->request->isAjax)
+				return $this->renderAjax('changeClassStudent', $renders);
+            else
+				return $this->render('changeClassStudent', $renders);
+        }
+    }
+	
+	/**
+     * Lists all Room models.
+     * @return mixed
+     */
+    public function actionRoom($id)
+    {
+		$model = $this->findModel($id);
+		
+		$searchModel = new ActivityRoomSearch([
+			'activity_id' => $id,
+		]);
+		
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+		
+		$location = explode('|',$model->location);
+		$location = (int)@$location[0];		
+		
+		$searchActivityRoomModel = new ActivityRoomExtensionSearch([
+			'startDateX'=>date('Y-m-d',strtotime($model->start)),
+			'endDateX'=>date('Y-m-d',strtotime($model->end)),
+			'computer'=>0,
+			'hostel'=>0,
+			'capacity'=>20,
+			'location'=>$location,
+		]);
+		
+		// SEARCH ROOM
+		/* $computer = 0;
+		$hostel = 0;
+		$capacity = 20;
+		$satker_id = $location;
+		
+		if (Yii::$app->request->post()) {	
+			$post = Yii::$app->request->post();
+			$computer = $post['computer'];
+			$hostel = $post['hostel'];
+			$capacity = $post['capacity'];
+			$satker_id = $post['location'];
+		}
+		
+		$searchModel2 = new RoomSearch([
+			'computer'=>$computer,
+			'hostel'=>$computer,
+			'capacity'=>$computer,
+			'satker_id'=>$satker_id,
+			'status'=>1
+		]);
+			
+        $dataProvider2 = $searchModel2->search(Yii::$app->request->queryParams); */
+		
+		$satkers['all']='--- All ---';
+		$satkers = ArrayHelper::map(Reference::find()
+			->where([
+				'type'=>'satker',
+			])
+			->asArray()
+			->all(), 'id', 'name');
+			
+        return $this->render('room', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+			/* 'searchModel2' => $searchModel2,
+            'dataProvider2' => $dataProvider2, */
+			'model' => $model,
+			'satkers'=>$satkers,
+			'searchActivityRoomModel' => $searchActivityRoomModel,
+        ]);
+    }
+	
+	/**
+     * Lists all Room models.
+     * @return mixed
+     */
+    public function actionAvailableRoom($id)
+    {
+		$model = $this->findModel($id);
+		
+		if (Yii::$app->request->post()) {
+			$post = Yii::$app->request->post('ActivityRoomExtensionSearch');
+			$wheres = [];
+			if($post['computer']==1) $wheres[] = 'computer=1';
+			if($post['hostel']==1) $wheres[] = 'hostel=1';
+			if($post['capacity']>0) $wheres[] = 'capacity>='.$post['capacity'];
+			if($post['location']!='all') $wheres[] = 'satker_id='.$post['location'];
+			$wheres[] = 'status = 1';
+			$where = implode(' AND ',$wheres);
+			$room = Room::find()->where(
+				$where
+			)->all();
+			
+			$start = date('Y-m-d H:i',strtotime($post['startDateX'].' '.$post['startTimeX'])); 
+			$end = date('Y-m-d H:i',strtotime($post['endDateX'].' '.$post['endTimeX'])); 
+			echo "<label><strong>List of Available Room</strong></label>";
+			echo '<div class="table-responsive">
+			<table class="table table-hover table-bordered table-striped table-condensed">
+			<thead>
+			<tr>
+				<th class="kv-sticky-column kv-align-center kv-align-middle" style="width:60px;">No</th>
+				<th class="kv-sticky-column kv-align-center kv-align-middle">Room</th>
+				<th class="kv-sticky-column kv-align-center kv-align-middle" style="width:60px;">Capa</th>
+				<th class="kv-sticky-column kv-align-center kv-align-middle" style="width:60px;">Comp</th>
+				<th class="kv-sticky-column kv-align-center kv-align-middle" style="width:60px;">Host</th>
+				<th class="kv-sticky-column kv-align-center kv-align-middle" style="width:60px;">Action</th>
+			</th>
+			</thead>
+			<tbody>';
+			$idx=0;
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			foreach($room as $data){				
+				// ONLY CHECK AVAILABILITY
+				$activityRoom = ActivityRoom::find()
+						->where('
+							((start between :start AND :end)
+								OR (end between :start AND :end))
+							AND 
+							room_id = :room_id
+							AND
+							status = :status
+						',
+						[
+							':start' => $start,
+							':end' => $end,
+							':room_id' => $data->id,
+							':status' => 2,
+						]);
+						
+				// IS AVAILABLE			
+				if($activityRoom->count()==0){ 
+					$activityRoom2 = ActivityRoom::find()
+							->where('
+								room_id = :room_id 
+								AND
+								activity_id = :activity_id
+								AND
+								status!=3
+							',
+							[
+								':room_id' => $data->id,
+								':activity_id' => $model->id,
+							]);
+					if($activityRoom2->count()==0){ 
+						$idx++;
+						echo '<tr>';
+						echo '<td>'.$idx.'</td>';
+						echo '<td>';
+						echo $data->name;
+						if($data->satker_id!=$satker_id){
+							echo '<br><span class="badge">'.$data->satker->name.'</span>';
+						}
+						echo '</td>';
+						echo '<td class="kv-sticky-column kv-align-center kv-align-middle">'.$data->capacity.'</td>';
+						echo '<td class="kv-sticky-column kv-align-center kv-align-middle">'.$data->computer.'</td>';
+						echo '<td class="kv-sticky-column kv-align-center kv-align-middle">'.$data->hostel.'</td>';
+						echo '<td class="kv-sticky-column kv-align-center kv-align-middle">';
+						echo Html::a('<span class="fa fa-square-o"></span>', 
+							[
+							'set-room',
+							'id'=>$model->id,
+							'room_id'=>$data->id
+							], 
+							[
+							'class' => 'label label-info link-post','data-pjax'=>0,
+							'title'=>'click to set it!',
+							'data-toggle'=>"tooltip",
+							'data-placement'=>"top",
+							]);
+						echo '</td>';
+						echo '</tr>';
+					}
+					else{
+						//echo '<tr>';
+						//echo '<td colspan="6">unavailable.. coming soon :)</td>';
+						//echo '</tr>';
+					}
+				}
+				// IS NOT AVAILABLE	
+				else{
+					echo '<tr>';
+					echo '<td colspan="6">unavailable.. coming soon :)</td>';
+					echo '</tr>';
+				}
+			}
+			echo '
+			</tbody>
+			</table>
+			</div>
+			<hr>';
+			echo '<script>			
+					$( "a.link-post" ).click(function() {
+						if(!confirm("Are you sure set it??")) return false;	
+						$.ajax({
+							url: $(this).attr("href"),
+							type: "post",
+							data: $("#form-available-room").serialize(),
+							success: function(data) {
+								$("#form-available-room").submit();
+								$.pjax.reload({
+									url: "'.\yii\helpers\Url::to(['room','id'=>$model->id]).'",
+									container: "#pjax-gridview-room", 
+									timeout: 3000,
+								});							
+							},
+							error:  function( jqXHR, textStatus, errorThrown ) {
+								$("#available-room").html(jqXHR.responseText);
+							}
+						});	
+						return false;
+					});
+				 </script>';
+		}
+	}
+	/**
+     * Creates a new Meeting model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return mixed
+     */
+    public function actionSetRoom($id,$room_id)
+    {
+		$model=$this->findModel($id);	
+		$post = Yii::$app->request->post('ActivityRoomExtensionSearch'); 		
+		$room = Room::findOne($room_id);
+		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;		
+		$status = ($room->satker_id==$satker_id)?1:0;
+		$start = date('Y-m-d H:i',strtotime($post['startDateX'].' '.$post['startTimeX'])); 
+		$end = date('Y-m-d H:i',strtotime($post['endDateX'].' '.$post['endTimeX']));
+		
+        $activityRoom = new ActivityRoom();
+		$activityRoom->activity_id = (int)$id;
+		$activityRoom->room_id = (int)$room_id;
+		$activityRoom->start = $start;
+		$activityRoom->end = $end;
+		$activityRoom->status = $status;
+		
+        if($activityRoom->save()) {
+			Yii::$app->session->setFlash('success', 'Room have setted');
+		}
+		else{
+			 Yii::$app->session->setFlash('error', 'Unable set, there are some error');
+		}
+		
+		if (Yii::$app->request->isAjax){	
+			return ('Room have setted');
+		}
+		else{
+			return $this->redirect(['room', 'id' => $id]);
+		} 
+    }
+	
+	public function actionUnsetRoom($id,$room_id)
+    {
+		$model=$this->findModel($id);	
+		$post = Yii::$app->request->post(); 		
+		$room = Room::findOne($room_id);
+		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;		
+		$activityRoom = ActivityRoom::find()->where(
+			'activity_id=:activity_id AND room_id=:room_id',
+			[
+				':activity_id'=>$id,':room_id'=>$room_id
+			])
+			->one();
+		$msg="-";
+		
+		if($room->satker_id==$satker_id and $activityRoom->status!=1){
+			if (Yii::$app->request->isAjax){	
+				$msg = ('You have not privileges to unset this data.');
+			}
+			else{
+				Yii::$app->session->setFlash('error', 'You have not privileges to unset this data.');
+			}
+		}
+		else if($room->satker_id!=$satker_id and $activityRoom->status!=0){
+			if (Yii::$app->request->isAjax){	
+				$msg = ('You have not privileges to unset this data..');
+			}
+			else{
+				Yii::$app->session->setFlash('error', 'You have not privileges to unset this data..');
+			}
+		}
+		else
+		{
+			if($activityRoom->delete()) {
+				Yii::$app->session->setFlash('success', 'Room have unset');
+			}
+			else{
+				 Yii::$app->session->setFlash('error', 'Unable unset there are some error');
+			}
+		}
+
+		if (Yii::$app->request->isAjax){	
+			echo $msg;
+		}
+		else{
+			return $this->redirect(['room', 'id' => $id]);
+		}		
+		
+    } 
 
 }
