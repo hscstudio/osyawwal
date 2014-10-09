@@ -1,8 +1,8 @@
 <?php
 
-use yii\helpers\Html;
 use yii\grid\GridView as Gridview2;
 use kartik\grid\GridView;
+use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\helpers\Inflector;
 use hscstudio\heart\widgets\Box;
@@ -56,8 +56,9 @@ $this->params['breadcrumbs'][] = $this->title;
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($data) {
-					return Html::a('<i class="fa fa-fw fa-tasks"></i>', Url::to(['attendance', 'tb_training_class_id' => $data->id]), [
-							'class' => 'btn btn-default btn-xs'
+					return Html::a('<i class="fa fa-fw fa-tasks"></i>', Url::to(['attendance', 'training_class_id' => $data->id]), [
+							'class' => 'btn btn-default btn-xs',
+							'data-pjax' => '0'
 						]);
 				}
 			],
@@ -116,6 +117,22 @@ $this->params['breadcrumbs'][] = $this->title;
 					}
 				}
 			],
+
+			[
+				'format' => 'raw',
+				'label' => 'Schedule',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'80px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+				'value' => function ($model){
+					return Html::a('SET',
+						Url::to(['schedule','training_class_id'=>$model->id]),
+						['class'=>'label label-default', 'data-pjax' => '0']);
+				}
+			],
+
 			[
 				'format' => 'raw',
 				'label' => 'Student',

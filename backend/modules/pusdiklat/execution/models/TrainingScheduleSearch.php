@@ -72,7 +72,15 @@ class TrainingScheduleSearch extends TrainingSchedule
 		
         $query->andFilterWhere(['like', 'activity', $this->activity])
               ->andFilterWhere(['like', 'pic', $this->pic]);
-	
+
+        if($this->startDate == $this->finishDate) {
+            $query->andFilterWhere(['=', 'date(start)', $this->startDate]);
+        }
+        else{
+            $query->andFilterWhere(['>=', 'date(start)', $this->startDate]);
+            $query->andFilterWhere(['<=', 'date(end)', $this->finishDate]);
+        }
+
         return $dataProvider;
     }
 }

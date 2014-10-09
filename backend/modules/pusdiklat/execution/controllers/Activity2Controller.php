@@ -1103,10 +1103,10 @@ class Activity2Controller extends Controller
 
 
 
-    public function actionAttendance($tb_training_class_id)
+    public function actionAttendance($training_class_id)
     {
 
-		$trainingClass = TrainingClass::findOne($tb_training_class_id);
+		$trainingClass = TrainingClass::findOne($training_class_id);
 		
 		if(empty($start)) {
 			$start = $trainingClass->training->activity->start;
@@ -1118,7 +1118,7 @@ class Activity2Controller extends Controller
 
 		$searchModel = new TrainingScheduleSearch;
 		$queryParams['TrainingScheduleSearch'] = [
-			'tb_training_class_id' => $tb_training_class_id,
+			'training_class_id' => $training_class_id,
 		];
 
 		$queryParams = ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
@@ -1147,6 +1147,214 @@ class Activity2Controller extends Controller
 			]);
 		}
 
+    }
+
+
+
+
+    public function actionSchedule($training_class_id,$start="",$finish="")
+    {
+		$trainingClass = TrainingClass::findOne($training_class_id);
+		
+		if(empty($start)){
+			$start = $trainingClass->training->activity->start;
+		}
+		
+		if(empty($finish) or $finish<$start){
+			$finish = $start;
+		}
+		$searchModel = new TrainingScheduleSearch();
+		$queryParams['TrainingScheduleSearch']=[				
+			'training_class_id'=>$training_class_id,
+			'startDate'=>$start,
+			'finishDate'=>$finish,
+		];
+		$queryParams = ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+        $dataProvider = $searchModel->search($queryParams);
+		$dataProvider->getSort()->defaultOrder = ['start'=>SORT_ASC,'end'=>SORT_ASC];
+
+		if (Yii::$app->request->isAjax){
+			return $this->renderAjax('schedule', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'trainingClass'=>$trainingClass,
+				'start'=>$start,
+				'finish'=>$finish,
+			]);
+		}
+		else{
+			return $this->render('schedule', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'trainingClass'=>$trainingClass,
+				'start'=>$start,
+				'finish'=>$finish,
+			]);
+		}
+    }
+
+
+
+    public function actionGetMaxTime($training_class_id,$start=""){
+		$start = date('Y-m-d',strtotime($start)); 
+		$finish =  date('Y-m-d',(strtotime($start)+ 60*60*24));
+		$trainingSchedule = TrainingSchedule::find()
+				->where('
+					(
+						start >= :start AND 
+						end <= :finish
+					)
+					AND 
+					training_class_id = :training_class_id
+					AND
+					status = :status
+				',
+				[
+					':start' => $start,
+					':finish' => $finish,
+					':training_class_id' => $training_class_id,
+					':status' => 1,
+				])
+				->orderBy('end DESC')
+				->one();
+		if($trainingSchedule!=null)
+			return date('H:i',strtotime($trainingSchedule->end));		
+		else
+			return '08:00';		
+	}
+
+
+
+
+	public function actionAddActivity($training_class_id) 
+    { 		
+		if (Yii::$app->request->isAjax){
+
+			// PREPARING DATA
+			$post = Yii::$app->request->post('TrainingScheduleExtSearch');
+			$start = date('Y-m-d H:i',strtotime($post['startDate'].' '.$post['startTime'])); 
+			$training_class_subject_id = $post['training_class_subject_id'];
+			$activity_room_id =  $post['activity_room_id'];
+			$activity = "";
+			$pic = "";
+			$hours = 0;
+			$minutes = 0;
+			
+			//CHECKING SATKER
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			$trainingClass = TrainingClass::findOne($training_class_id);
+			if ($satker_id!=$trainingClass->training->activity->satker_id){
+				die('|0|You have not privileges');
+			}
+			
+			if(empty($training_class_subject_id) or $training_class_subject_id==0){
+				die('|0|You must select activity!');
+			}
+			else if ($training_class_subject_id>0){
+				$hours = $post['hours'];
+				if($hours>0){
+					$minutes = (int)($hours * 45);
+				}
+				else{
+					die('|0|Hours have more than 0');
+				}
+			}
+			else{
+				$minutes = (int)$post['minutes'];
+				if($minutes>0){
+					$activity = $post['activity'];
+					$pic = $post['pic'];
+				}
+				else{
+					die('|0|Minutes have more than 0');
+				}
+			}
+			$training_class_subject_id=(int)$training_class_subject_id;
+			$finish = date('Y-m-d H:i',strtotime($start)+($minutes*60));
+			$activity_room_id=(int)$activity_room_id;
+			// CHECKING CONSTRAIN TIME
+			$startSearch = $start + 60; // [08:00 - 09:00, 09:00 - 10:00] not excact between :)
+			$finishSearch = $finish - 60;
+			$trainingSchedule = TrainingSchedule::find()
+				->where('
+					((start between :start AND :finish)
+						OR (end between :start AND :finish))
+					AND 
+					training_class_id = :training_class_id
+					AND
+					status = :status
+				',
+				[
+					':start' => $startSearch,
+					':finish' => $finishSearch,
+					':training_class_id' => $training_class_id,
+					':status' => 1,
+				]);
+				
+			// IS NOT CONSTRAIN			
+			if($trainingSchedule->count()==0){ 
+				// PREPARING SAVE
+				$model = new TrainingSchedule(); 
+				$model->training_class_id=$training_class_id;
+				$model->training_class_subject_id = $training_class_subject_id;
+				$model->activity_room_id = $activity_room_id;		
+				$model->activity = $activity;
+				$model->pic = $pic;
+				$model->hours = $hours;
+				$model->start = $start;
+				$model->end = $finish;
+				$model->status = 1;
+			
+				if($model->save()) {
+					Yii::$app->session->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Activity have Added');
+					die('|1|Activity have Added|'.date('Y-m-d',strtotime($start)).'|'.date('H:i',strtotime($finish)));
+					
+				}
+				else{
+					die('|0|There are some error');
+				}
+			}
+			else{
+				die('|0|Constrain time, please change time!');
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Only for ajax request');
+			return $this->redirect(['schedule', 'training_class_id' => $training_class_id]);
+		}
+    } 
+
+	public function actionDeleteActivity($id,$training_class_id)
+    {
+		if (Yii::$app->request->isAjax){
+
+			//CHECKING SATKER
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			$trainingClass = TrainingClass::findOne($training_class_id);
+			if ($satker_id != $trainingClass->training->activity->satker_id){
+				die('|0|You have not privileges');
+			}
+			
+			$trainingSchedule = TrainingSchedule::find()->where([
+				'id'=>$id,
+				'training_class_id'=>$training_class_id,
+			])->one();
+
+			$start = $trainingSchedule->start;
+
+			if($trainingSchedule->delete()) {
+				Yii::$app->session->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Delete activity success');
+				die('|1|Activity have deleted|'.date('Y-m-d',strtotime($start)).'|'.date('H:i',strtotime($start)));
+			}
+			else{
+				die('|0|There are some error');
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Only for ajax request');
+			return $this->redirect(['schedule', 'training_class_id' => $training_class_id]);
+		}		
+		
     }
 
 
