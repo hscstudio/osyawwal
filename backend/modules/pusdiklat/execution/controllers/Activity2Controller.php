@@ -30,6 +30,9 @@ use backend\modules\pusdiklat\execution\models\TrainingStudentSearch;
 use backend\models\Student;
 use backend\modules\pusdiklat\execution\models\StudentSearch;
 
+use backend\models\TrainingSchedule;
+use backend\modules\pusdiklat\execution\models\TrainingScheduleSearch;
+
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -1095,5 +1098,56 @@ class Activity2Controller extends Controller
 			'trainingStudentCount' => $trainingStudentCount
         ]);
     }
+
+
+
+
+
+    public function actionAttendance($tb_training_class_id)
+    {
+
+		$trainingClass = TrainingClass::findOne($tb_training_class_id);
+		
+		if(empty($start)) {
+			$start = $trainingClass->training->activity->start;
+		}
+		
+		if(empty($end) or $end < $start){
+			$end = $start;
+		}
+
+		$searchModel = new TrainingScheduleSearch;
+		$queryParams['TrainingScheduleSearch'] = [
+			'tb_training_class_id' => $tb_training_class_id,
+		];
+
+		$queryParams = ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+        $dataProvider = $searchModel->search($queryParams);
+
+        $dataProvider->query->groupBy = 'date(start)';
+
+		$dataProvider->getSort()->defaultOrder = ['start'=>SORT_ASC,'end'=>SORT_ASC];
+
+		if (Yii::$app->request->isAjax){
+			return $this->renderAjax('attendance', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'trainingClass' => $trainingClass,
+				'start' => $start,
+				'end' => $end,
+			]);
+		}
+		else{
+			return $this->render('attendance', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+				'trainingClass'=> $trainingClass,
+				'start' => $start,
+				'end' => $end,
+			]);
+		}
+
+    }
+
 
 }

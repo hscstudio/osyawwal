@@ -7,10 +7,6 @@ use yii\helpers\Url;
 use yii\helpers\Inflector;
 use hscstudio\heart\widgets\Box;
 
-/* @var $this yii\web\View */
-/* @var $searchModel backend\modules\pusdiklat\execution\models\TrainingClassSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
@@ -49,7 +45,23 @@ $this->params['breadcrumbs'][] = $this->title;
 				'hAlign'=>'center',
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],					
-			],	
+			],
+
+			[
+				'format' => 'raw',
+				'label' => 'Attendance',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'80px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+				'value' => function ($data) {
+					return Html::a('<i class="fa fa-fw fa-tasks"></i>', Url::to(['attendance', 'tb_training_class_id' => $data->id]), [
+							'class' => 'btn btn-default btn-xs'
+						]);
+				}
+			],
+			
 			[
 				'format' => 'raw',
 				'label' => 'Subject',
