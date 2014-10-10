@@ -430,11 +430,97 @@ class Activity2Controller extends Controller
 			'training_id' => $id,
 		]);
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+		
+		$subquery = TrainingClassStudent::find()
+			->select('training_student_id')
+			->where(['training_id' => $id]);
+		 
+		// fetch orders that are placed by customers who are older than 30  
+		$trainingStudentCount = TrainingStudent::find()
+			->where(['status'=>'1'])
+			->andWhere([
+				'not in', 'id', $subquery
+			])
+			->count();
+		
+		if (Yii::$app->request->post()){ 
+			$student = Yii::$app->request->post()['student'];
+			$baseon = 0;
+			if(isset(Yii::$app->request->post()['baseon'])) $baseon = Yii::$app->request->post()['baseon'];
+			$objectTrainingClass = TrainingClass::find()
+					->where([
+						'training_id' => $id,
+					]);
+			$trainingClassCount = (int) $objectTrainingClass->count();
+			
+			if($student>$trainingStudentCount){
+				Yii::$app->session->setFlash('error', 'Your request more than stock!');
+			}
+			else if($trainingClassCount==0){
+				Yii::$app->session->setFlash('error', 'There is no class!');
+			}
+			else if($baseon==0 or count($baseon)==0){
+				Yii::$app->session->setFlash('error', 'Select base on random!');
+			}
+			else{				
+				$baseon = implode(',',$baseon);
+				// select name, gender from person group by name, gender order by rand();
+				$part = (int) ($student / $trainingClassCount);
+				$residu = $student % $trainingClassCount;
+				$trainingClasses = $objectTrainingClass->all();
+				//die($part.' => '.$residu);
+				$idx = 1;
+				foreach($trainingClasses as $trainingClass){
+					$limit = $part;
+					if($idx == $trainingClassCount){
+						$limit += $residu; 
+					}
+					$trainingStudents = TrainingStudent::find()
+						->joinWith('student')
+						->joinWith('student.person')
+						->joinWith('student.person.unit')
+						->where(['training_student.status'=>'1'])
+						->andWhere([
+							'not in', 'training_student.id', $subquery
+						])
+						->groupBy($baseon)
+						->orderBy('rand()')
+						->limit($limit)
+						->asArray()
+						->all();
+					foreach ($trainingStudents as $trainingStudent){
+						$trainingClassStudent = new TrainingClassStudent([
+							'training_id'=>$id,
+							'training_class_id'=>$trainingClass->id,
+							'training_student_id'=>$trainingStudent['id'],
+							'status'=>1
+						]);
+						$trainingClassStudent->save();
+					}
+					$idx++;
+				}
+				
+				Yii::$app->session->setFlash('success', $student.' student added!');
+				
+				$subquery = TrainingClassStudent::find()
+					->select('training_student_id')
+					->where(['training_id' => $id]);
+				 
+				// fetch orders that are placed by customers who are older than 30  
+				$trainingStudentCount = TrainingStudent::find()
+					->where(['status'=>'1'])
+					->andWhere([
+						'not in', 'id', $subquery
+					])
+					->count();
+			}
+		}
+		
         return $this->render('class', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
 			'model' => $model,
+			'trainingStudentCount' => $trainingStudentCount
         ]);
     }
 	
@@ -1167,7 +1253,7 @@ class Activity2Controller extends Controller
 		$queryParams['TrainingScheduleSearch']=[				
 			'training_class_id'=>$training_class_id,
 			'startDate'=>$start,
-			'finishDate'=>$finish,
+			'endDate'=>$finish,
 		];
 		$queryParams = ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
         $dataProvider = $searchModel->search($queryParams);
