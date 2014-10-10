@@ -1022,7 +1022,7 @@ class Activity2Controller extends Controller
 		$searchModel = new TrainingClassStudentSearch();
 		$queryParams['TrainingClassStudentSearch']=[				
 			'training_class_id' =>$class_id,
-			'status'=>1,
+			'training_class_student.status'=>1,
 		];
 		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
 		$dataProvider = $searchModel->search($queryParams); 

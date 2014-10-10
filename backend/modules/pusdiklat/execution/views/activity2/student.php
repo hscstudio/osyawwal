@@ -181,8 +181,19 @@ $this->params['breadcrumbs'][] = $this->title;
 	</div>
     <div class="panel-body">
 		<div class="row clearfix">
-			<div class="col-md-4">
+			<div class="col-md-2">
 			Upload Student
+			</div>
+			<div class="col-md-2">
+			<?php
+			echo Html::a('template',
+						Url::to(['/file/download','file'=>'template/pusdiklat/execution/student_upload.xlsx']),
+						[
+							'class'=>'label label-default',
+							'data-pjax'=>'0',
+						]
+					);
+			?>
 			</div>
 			<div class="col-md-8">
 			<?php
