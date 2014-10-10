@@ -11,8 +11,11 @@ use backend\models\ProgramSubject;
 use backend\models\TrainingSchedule;
 use backend\models\TrainingScheduleTrainer;
 
-$this->title = 'Update Trainer Attendance: ';
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = 'Update Trainer Attendance';
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Training Activities'), 'url' => ['activity2/index']];
+$this->params['breadcrumbs'][] = ['label' => 'Training Classes', 'url' => ['activity2/class','id'=>$trainingClass->training_id]];
+$this->params['breadcrumbs'][] = ['label' => 'Schedule : Class '.$trainingClass->class, 'url' => ['activity2/attendance','training_class_id'=> $training_class_id]];
+$this->params['breadcrumbs'][] = $this->title;
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
@@ -36,7 +39,7 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainer->name;
+					return $model->trainer->person->name;
 				}
 			],
 
@@ -46,7 +49,7 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainer->nip;
+					return $model->trainer->person->nip;
 				}
 			],
 
@@ -56,7 +59,7 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainer->organization;
+					return $model->trainer->person->organisation;
 				}
 			],
     	];

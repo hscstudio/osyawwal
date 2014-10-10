@@ -3,16 +3,18 @@
 namespace backend\modules\pusdiklat\execution\controllers;
 
 use Yii;
-use backend\models\TrainingScheduleTrainer;
-use backend\models\TrainingScheduleTrainerAttendance;
-use backend\models\TrainingScheduleTrainerAttendanceSearch;
-use backend\models\TrainingSchedule;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\data\ActiveDataProvider;
+
+use backend\models\TrainingClass;
+use backend\models\TrainingSchedule;
+use backend\models\TrainingScheduleTrainer;
+use backend\models\TrainingScheduleTrainerAttendance;
+use backend\models\TrainingScheduleTrainerAttendanceSearch;
 
 class TrainingScheduleTrainerAttendanceController extends Controller
 {
@@ -83,11 +85,17 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 			->groupBy('trainer_id')
 		]);
 		// dah
+
+
+		// Ngambil data trainingclass
+		$trainingClass = TrainingClass::findOne($referenceClass);
+		// dah
 		
         return $this->render('update', [
             'dataProvider' => $dataProvider,
             'training_class_id' => $referenceClass,
-            'idSchedule' => $idSchedule
+            'idSchedule' => $idSchedule,
+            'trainingClass' => $trainingClass
         ]);
 
     }
