@@ -84,3 +84,4 @@ class TrainingScheduleSearch extends TrainingSchedule
         return $dataProvider;
     }
 }
+

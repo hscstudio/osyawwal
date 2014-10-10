@@ -37,11 +37,17 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 	<?php 
 	$url = Url::to(['activity-lists','id'=>$activity->id,'class_id'=>$class->id]);
 	$form = ActiveForm::begin([
-		'action' => ['add-activity-class-schedule','id'=>$activity->id,'class_id'=>$class->id],
+		'action' => [
+			'add-activity-class-schedule',
+			'id'=>$activity->id,
+			'class_id'=>$class->id
+		],
 		'enableAjaxValidation' => false,
 		'enableClientValidation' => false,
 		'options'=>[
 			'onsubmit'=>"
+				var form = $(this);
+				form.find('button[type=submit]').attr('disabled',true);
 				$.ajax({
 					url: $(this).attr('action'),
 					type: 'post',
@@ -57,15 +63,17 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 								timeout: 3000,
 							});				
 							
-							$('#trainingscheduleextsearch-starttime').val(datas[4])
-							$('#trainingscheduleextsearch-starttime-disp').val(datas[4])
+							$('#trainingscheduleextsearch-starttime').val(datas[4]);
+							$('#trainingscheduleextsearch-starttime-disp').val(datas[4]);
 						}
-						else{
+						else{							
 							alert(datas[2]);
 						}
+						form.find('button[type=submit]').removeAttr('disabled');
 					},
 					error:  function( jqXHR, textStatus, errorThrown ) {
 						alert(jqXHR.responseText);
+						form.find('button[type=submit]').removeAttr('disabled');
 					}
 				});	
 				return false;
@@ -265,7 +273,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				'allowClear' => true,
 			],
 		])->label(false); 
-		$this->registerCss('#s2id_trainingscheduleextsearch-tb_activity_room_id { width: 275px !important; }');
+		$this->registerCss('#s2id_trainingscheduleextsearch-activity_room_id { width: 275px !important; }');
 		?>
 		</td>
 		<td>
@@ -397,15 +405,23 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'format'=>'raw',
-				'value'=>function($data){
+				'value'=>function($data)use ($activity, $class){
 					if($data->training_class_subject_id>0){
 						// FIND PENGAJAR pada tb_training_schedule_trainer (id, tb_training_schedule_id, tb_trainer_id, status);
-						$content = Html::a('<i class="fa fa-plus"></i> Add',['trainer','id'=>$data->id],[
+						$content = Html::a('<i class="fa fa-plus"></i> Add',
+						[
+						'trainer-class-schedule',
+						'id'=>$activity->id,
+						'class_id'=>$class->id,
+						'schedule_id'=>$data->id,
+						],
+						[
 							'class' => 'label label-success modal-heart',
 							'data-pjax'=>0,
 							'title'=>'Click to add trainer!',
 							'data-toggle'=>"tooltip",
 							'data-placement'=>"top",
+							'modal-size' => 'modal-lg',
 						]);
 						
 						$trainingScheduleTrainer = \backend\models\TrainingScheduleTrainer::find()
@@ -461,7 +477,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'format'=>'raw',
-				'value'=>function($data) use ($activity){
+				'value'=>function($data) use ($activity, $class){
 					if($data->activity_room_id>0){
 						$ar = \backend\models\ActivityRoom::find()
 							->where([
@@ -472,18 +488,33 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 						$room = $ar->room->name;
 						$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
 						if($ar->room->satker_id!=$satker_id){
-							/* $room .= ' ['.$ar->room->satker->name.'] '; */
+							$room .= ' ['.$ar->room->satker->name.'] ';
 						} 
-						return Html::a($ar->room_id,['room','id'=>$data->id],[
+						return Html::a($ar->room_id,
+							[
+							'room-class-schedule',
+							'id'=>$activity->id,
+							'class_id'=>$class->id,
+							'schedule_id'=>$data->id,
+							],
+							[
 							'class' => 'label label-warning modal-heart',
 							'data-pjax'=>0,
 							'title'=>$room,
 							'data-toggle'=>"tooltip",
 							'data-placement'=>"top",
+							'modal-title'=>'Set Room',
 						]);
 					}
 					else{
-						return Html::a('-',['room','id'=>$data->id],[
+						return Html::a('-',
+						[
+						'room-class-schedule',
+						'id'=>$activity->id,
+						'class_id'=>$class->id,
+						'schedule_id'=>$data->id,
+						],
+						[
 							'class' => 'label label-warning modal-heart',
 							'data-pjax'=>0,
 							'title'=>'Click to set room!',
@@ -502,7 +533,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				'width'=>'80px',
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
-				'value' => function ($data) use($class){
+				'value' => function ($data) use($activity, $class){
 					$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
 					$delete = false;
 					if($data->trainingClass->training->activity->satker_id==$satker_id){
@@ -512,15 +543,15 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 					if($delete){
 						return Html::a('<span class="fa fa-times"></span>', 
 							[
-							'delete-activity',
-							'id'=>$data->id,
-							'tb_training_class_id'=>$class->id,
+							'delete-activity-class-schedule',
+							'id'=>$activity->id,
+							'class_id'=>$class->id,
+							'schedule_id'=>$data->id,
 							], 
 							[
 							'class' => 'label label-danger link-post',
 							'data-pjax'=>0,
 							'title'=>'click to delete it!',
-							//'data-confirm'=>'Are sure delete it!',
 							'data-toggle'=>"tooltip",
 							'data-placement'=>"top",
 							]);
@@ -583,11 +614,12 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
     ]); ?>
 	<?php
 	$this->registerJs('
-			if($("#trainingscheduleextsearch-tb_training_class_subject_id").val()>0){
-				var select2Index = $("#trainingscheduleextsearch-tb_training_class_subject_id").val();
+			if($("#trainingscheduleextsearch-training_class_subject_id").val()>0){
+				var select2Index = $("#trainingscheduleextsearch-training_class_subject_id").val();
 				$.pjax.reload({
-					url: "'.\yii\helpers\Url::to(['schedule',
-						'tb_training_class_id'=>$class->id,
+					url: "'.\yii\helpers\Url::to(['class-schedule',
+						'id'=>$activity->id,
+						'class_id'=>$class->id,
 						'start'=>$start,
 					]).'&s2I="+select2Index,
 					container: "#pjax-select-activity", 
@@ -598,8 +630,9 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 		
 			$( "a.link-post" ).click(function() {	
 				if(!confirm("Are you sure delete it??")) return false;	
+				var link = $(this)
 				$.ajax({
-					url: $(this).attr("href"),
+					url: link.attr("href"),
 					type: "post",
 					//data: $("#form-available-room").serialize(),
 					success: function(data) {
@@ -688,5 +721,5 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 		$("#trainingscheduleextsearch-hours").prop("disabled",false);
 	'); 			
 	?>
-	<?= \hscstudio\heart\widgets\Modal::widget(['registerAsset'=>false]) ?>
+	<?= \hscstudio\heart\widgets\Modal::widget(['registerAsset'=>true]) ?>
 </div>
