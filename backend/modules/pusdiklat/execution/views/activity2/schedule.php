@@ -332,9 +332,9 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 	}
 	
 	if (!isset($start) or empty($start)) {
-		$start = $trainingClass->training->start;
+		$start = $trainingClass->training->activity->start;
 	}
-	$model->scheduleDate=$start;
+	$model->scheduleDate = date('Y-m-d', strtotime($start));
 	?>	
 	
     <?= GridView::widget([
