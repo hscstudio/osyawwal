@@ -13,8 +13,11 @@ use kartik\datecontrol\DateControl;
 use kartik\checkbox\CheckboxX;
 
 use backend\models\ActivityRoom;
-use backend\models\TrainingClassSubject;
 use backend\models\ProgramSubjectHistory;
+use backend\models\ProgramSubject;
+use backend\models\TrainingClassSubject;
+use backend\models\TrainingSchedule;
+use backend\models\TrainingScheduleTrainer;
 use backend\modules\pusdiklat\execution\models\TrainingScheduleExtSearch;
 
 $this->title = 'Schedule : Class '.$trainingClass->class;
@@ -123,34 +126,52 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 		?>
 		</td>
 		<td>
+		
+		
+
 		<?php \yii\widgets\Pjax::begin([
 			'id'=>'pjax-select-activity',
 		]); ?>
+		
+
+
 		<?php
-		$trainingClassSubject = \backend\models\TrainingClassSubject::find()
+		$trainingClassSubject = TrainingClassSubject::find()
 			->where(['training_class_id'=>$trainingClass->id,'status'=>1])
 			->all();
+		
 		$data=[];
+		
 		foreach($trainingClassSubject as $tcs){
-			$program_id = $tcs->trainingClass->training->program_id;
+			// $program_id = $tcs->trainingClass->training->program_id;
+			$program_subject_id = $tcs->program_subject_id;
 			$program_revision = $tcs->trainingClass->training->program_revision;
-			$programSubjectHistory = ProgramSubjectHistory::find()
+			/*$programSubjectHistory = ProgramSubjectHistory::find()
 			->where([
 				'program_id'=>$program_id,
 				'revision'=>$program_revision,
 				'status'=>1
 			])
+			->one();*/
+			$programSubject = ProgramSubject::find()
+			->where([
+				'id'=>$program_subject_id,
+				'status'=>1
+			])
 			->one();
-			if(null!=$programSubjectHistory){
-				$ts = \backend\models\TrainingSchedule::find()
+			// if(null!=$programSubjectHistory) {
+			if(null!=$programSubject) {
+				$ts = TrainingSchedule::find()
 					->select(['used_hours'=>'sum(hours)'])
 					->where(['training_class_subject_id'=>$tcs->id,'status'=>1])
 					->groupBy('training_class_subject_id')
 					->asArray()
 					->one();
-				$available_hours = $programSubjectHistory->hours - $ts['used_hours'];
+				// $available_hours = $programSubjectHistory->hours - $ts['used_hours'];
+				$available_hours = $programSubject->hours - $ts['used_hours'];
 				if($available_hours>0){
-					$name = $programSubjectHistory->subjectType->name.' '.$programSubjectHistory->name.' '.$available_hours.' JP';
+					// $name = $programSubjectHistory->subjectType->name.' '.$programSubjectHistory->name.' '.$available_hours.' JP';
+					$name = $programSubject->name.' '.$available_hours.' JP';
 					$data[$tcs->id]=$name;
 				}
 				else{
@@ -180,7 +201,6 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				}
 			}
 		";
-		//$this->registerJs('$.ajax("'.$url.'", {dataType: "json"}).done(function(data) { alert(data.results.text); callback(data.results);});');
 		echo $form->field($model, 'training_class_subject_id')->widget(Select2::classname(), [
 			'data' => $data,
 			'options' => [
@@ -358,17 +378,26 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 						$trainingClassSubject = TrainingClassSubject::findOne($model->training_class_subject_id);
 						
 						if($trainingClassSubject != null) {
-							$program_id = $trainingClassSubject->trainingClass->training->program_id;
+							// $program_id = $trainingClassSubject->trainingClass->training->program_id;
+							$program_subject_id = $trainingClassSubject->program_subject_id;
 							$program_revision = $trainingClassSubject->trainingClass->training->program_revision;
-							$programSubjectHistory = ProgramSubjectHistory::find()
+							/*$programSubjectHistory = ProgramSubjectHistory::find()
 							->where([
 								'program_id'=>$program_id,
 								'revision'=>$program_revision,
 								'status'=>1
 							])
+							->one();*/
+							$programSubject = ProgramSubject::find()
+							->where([
+								'id'=>$program_subject_id,
+								'status'=>1
+							])
 							->one();
-							if(null != $programSubjectHistory) {
-								$name = $programSubjectHistory->name;
+							// if(null != $programSubjectHistory) {
+							if(null != $programSubject) {
+								// $name = $programSubjectHistory->name;
+								$name = $programSubject->name;
 								return $name;
 							}
 							else{
@@ -420,21 +449,21 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 							'data-placement'=>"top",
 						]);
 						
-						$trainingScheduleTrainer = \backend\models\TrainingScheduleTrainer::find()
+						$trainingScheduleTrainer = TrainingScheduleTrainer::find()
 							->where([
 								'training_schedule_id'=>$model->id,
 								'status'=>1,
 							])
-							->orderBy('ref_trainer_type_id ASC')
+							->orderBy('type ASC')
 							->all();
-						$ref_trainer_type_id= "-1";	
+						$type= "-1";	
 						$idx = 1;
 						foreach($trainingScheduleTrainer as $trainer){
-							if($ref_trainer_type_id!=$trainer->ref_trainer_type_id){
+							if($type!=$trainer->type){
 								$content .="<hr style='margin:2px 0'>";
 								$content .="<strong>".$trainer->trainerType->name."</strong>";
 								$content .="<hr style='margin:2px 0'>";
-								$ref_trainer_type_id=$trainer->ref_trainer_type_id;
+								$type=$trainer->type;
 								$idx=1;
 							}
 							
@@ -626,7 +655,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 			});
 			
 			$.ajax({
-				url: "'.yii\helpers\Url::to(['get-max-time','training_class_id'=>$trainingClass->id,'start'=>$start]).'",
+				url: "'.Url::to(['get-max-time','training_class_id'=>$trainingClass->id,'start'=>$start]).'",
 				type: "post",
 				//data: $("#form-available-room").serialize(),
 				success: function(data) {
