@@ -104,7 +104,7 @@ echo AlertBlock::widget([
 									else {
 						    			$.ajax({
 											type: "post",
-											url: "editable",
+											url: "'.Url::to(['editable']).'",
 											data: {
 												hours: $(this).val(),
 												id: "'.$modelTrainingScheduleTrainer->id.'",

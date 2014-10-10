@@ -25,6 +25,7 @@ class Module extends \yii\base\Module
 			['icon'=>'fa fa-fw fa-link', 'label' => '+ Execution II', 'url' => ['#'], 'items'=>[
 				['icon'=>'fa fa-fw fa-stack-overflow', 'label' => 'Training', 'url' => ['activity2/index'],'path'=>[
 					'/activity2/',
+					'/training-class-student-attendance/'
 				]],
 				['icon'=>'fa fa-fw fa-user-md', 'label' => 'Student', 'url' => ['student2/index'],'path'=>[
 					'/student2/',

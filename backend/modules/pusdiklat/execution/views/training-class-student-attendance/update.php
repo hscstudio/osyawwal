@@ -10,9 +10,13 @@ use kartik\grid\GridView;
 use backend\models\ProgramSubject;
 use backend\models\TrainingSchedule;
 use backend\models\TrainingClassStudentAttendance;
+use backend\models\ObjectReference;
 
-$this->title = 'Update Training Class Student Attendance: ';
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = 'Update Training Class Student Attendance';
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Training Activities'), 'url' => ['activity2/index']];
+$this->params['breadcrumbs'][] = ['label' => 'Training Classes', 'url' => ['activity2/class','id'=>$trainingClass->training_id]];
+$this->params['breadcrumbs'][] = ['label' => 'Schedule : Class '.$trainingClass->class, 'url' => ['activity2/attendance','training_class_id'=> $training_class_id]];
+$this->params['breadcrumbs'][] = $this->title;
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
@@ -36,7 +40,7 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainingStudent->student->name;
+					return $model->trainingStudent->student->person->name;
 				}
 			],
 
@@ -46,7 +50,7 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainingStudent->student->nip;
+					return $model->trainingStudent->student->person->nip;
 				}
 			],
 
@@ -56,7 +60,14 @@ echo AlertBlock::widget([
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'value' => function ($model) {
-					return $model->trainingStudent->student->unit->shortname;
+					$objectReference = ObjectReference::find()
+						->where([
+							'object' => 'person',
+							'object_id' => $model->trainingStudent->student->person->id,
+							'type' => 'unit'
+						])
+						->one();
+					return $objectReference->reference->name;
 				}
 			],
     	];
@@ -105,7 +116,7 @@ echo AlertBlock::widget([
 								else {
 					    			$.ajax({
 										type: "post",
-										url: "editable",
+										url: "'.Url::to(['editable']).'",
 										data: {
 											hours: $(this).val(),
 											training_schedule_id: "'.$modelAttendance->training_schedule_id.'",

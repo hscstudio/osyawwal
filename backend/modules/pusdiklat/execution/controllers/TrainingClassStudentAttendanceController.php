@@ -12,6 +12,7 @@ use yii\helpers\Json;
 use backend\models\TrainingClassStudentAttendance;
 use backend\models\TrainingClassStudentAttendanceSearch;
 use backend\models\TrainingClassStudent;
+use backend\models\TrainingClass;
 use backend\models\TrainingSchedule;
 
 use backend\modules\pusdiklat\execution\models\TrainingClassStudentSearch;
@@ -115,13 +116,18 @@ class TrainingClassStudentAttendanceController extends Controller
 
 		$dataProvider = $searchModel->search($queryParams);
 		// dah
+
+
+		// Ngambil data trainingclass
+		$trainingClass = TrainingClass::findOne($referenceClass);
 		
         return $this->render('update', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
             'training_schedule_id' => $training_schedule_id,
             'training_class_id' => $referenceClass,
-            'idSchedule' => $idSchedule
+            'idSchedule' => $idSchedule,
+            'trainingClass' => $trainingClass
         ]);
 
     }
@@ -136,7 +142,7 @@ class TrainingClassStudentAttendanceController extends Controller
 		// Cuma ajax yg boleh manggil fungsi ni
 		if (Yii::$app->request->isAjax == false) {
 			Yii::$app->session->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i> Forbidden!');
-			return $this->redirect(['training/index']);
+			return $this->redirect(['activity2/index']);
 		}
 		// dah
 
@@ -148,15 +154,16 @@ class TrainingClassStudentAttendanceController extends Controller
 			->one();
 
 		// Cek jumlah jamlat yg dinput dengan max jamlat dari schedule
-
 		$error = '';
 
-		if ( Yii::$app->request->post('hours') > $modelTrainingClassStudentAttendance->trainingSchedule->hours) {
+		$modelTrainingSchedule = TrainingSchedule::findOne($modelTrainingClassStudentAttendance->training_schedule_id);
+
+		if ( Yii::$app->request->post('hours') > $modelTrainingSchedule->hours) {
 
 			// Melebihi limit. Simpan ke nilai maxnya
 			$error = 'max';
 			
-			$modelTrainingClassStudentAttendance->hours = $modelTrainingClassStudentAttendance->trainingSchedule->hours;
+			$modelTrainingClassStudentAttendance->hours = $modelTrainingSchedule->hours;
 
 		}
 		else {
