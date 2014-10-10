@@ -3,16 +3,16 @@
 namespace backend\modules\pusdiklat\execution\controllers;
 
 use Yii;
-use backend\models\TrainingStudent;
-use backend\modules\pusdiklat\execution\models\TrainingStudentSearch;
+use backend\models\Room;
+use backend\modules\pusdiklat\execution\models\RoomSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * TrainingStudentController implements the CRUD actions for TrainingStudent model.
+ * RoomController implements the CRUD actions for Room model.
  */
-class TrainingStudentController extends Controller
+class RoomController extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()
@@ -28,12 +28,12 @@ class TrainingStudentController extends Controller
     }
 
     /**
-     * Lists all TrainingStudent models.
+     * Lists all Room models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new TrainingStudentSearch();
+        $searchModel = new RoomSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -43,7 +43,7 @@ class TrainingStudentController extends Controller
     }
 
     /**
-     * Displays a single TrainingStudent model.
+     * Displays a single Room model.
      * @param integer $id
      * @return mixed
      */
@@ -55,13 +55,13 @@ class TrainingStudentController extends Controller
     }
 
     /**
-     * Creates a new TrainingStudent model.
+     * Creates a new Room model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new TrainingStudent();
+        $model = new Room();
 
         if ($model->load(Yii::$app->request->post())){ 
 			if($model->save()) {
@@ -78,10 +78,33 @@ class TrainingStudentController extends Controller
         }
     }
 
-    
+    /**
+     * Updates an existing Room model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionUpdate($id)
+    {
+        $model = $this->findModel($id);
+
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->save()) {
+				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
+			}
+			else{
+				Yii::$app->getSession()->setFlash('error', 'Data is not updated.');
+			}
+			return $this->redirect(['view', 'id' => $model->id]);
+        } else {
+            return $this->render('update', [
+                'model' => $model,
+            ]);
+        }
+    }
 
     /**
-     * Deletes an existing TrainingStudent model.
+     * Deletes an existing Room model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
@@ -98,15 +121,15 @@ class TrainingStudentController extends Controller
     }
 
     /**
-     * Finds the TrainingStudent model based on its primary key value.
+     * Finds the Room model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return TrainingStudent the loaded model
+     * @return Room the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = TrainingStudent::findOne($id)) !== null) {
+        if (($model = Room::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

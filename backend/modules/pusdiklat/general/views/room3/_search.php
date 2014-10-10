@@ -4,11 +4,11 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model backend\modules\pusdiklat\execution\models\TrainingClassSubjectSearch */
+/* @var $model backend\modules\pusdiklat\general\models\RoomSearch */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 
-<div class="training-class-subject-search">
+<div class="room-search">
 
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
@@ -17,13 +17,25 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'id') ?>
 
-    <?= $form->field($model, 'training_class_id') ?>
+    <?= $form->field($model, 'satker_id') ?>
 
-    <?= $form->field($model, 'program_subject_id') ?>
+    <?= $form->field($model, 'code') ?>
 
-    <?= $form->field($model, 'status') ?>
+    <?= $form->field($model, 'name') ?>
 
-    <?= $form->field($model, 'created') ?>
+    <?= $form->field($model, 'capacity') ?>
+
+    <?php // echo $form->field($model, 'owner') ?>
+
+    <?php // echo $form->field($model, 'computer') ?>
+
+    <?php // echo $form->field($model, 'hostel') ?>
+
+    <?php // echo $form->field($model, 'address') ?>
+
+    <?php // echo $form->field($model, 'status') ?>
+
+    <?php // echo $form->field($model, 'created') ?>
 
     <?php // echo $form->field($model, 'created_by') ?>
 

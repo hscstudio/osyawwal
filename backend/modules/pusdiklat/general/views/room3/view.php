@@ -4,17 +4,17 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 /* @var $this yii\web\View */
-/* @var $model backend\models\TrainingStudent */
+/* @var $model backend\models\Room */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
-$this->title = 'Update #'.$model->id;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Training Students'), 'url' => ['index']];
+$this->title = 'Update #'.$model->name;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Rooms'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="training-student-view  panel panel-default">
+<div class="room-view  panel panel-default">
 
    <div class="panel-heading"> 
 		<div class="pull-right">
@@ -41,8 +41,14 @@ $this->params['breadcrumbs'][] = $this->title;
 				'model' => $model,
 				'attributes' => [
 		            'id',
-            'training_id',
-            'student_id',
+            'satker_id',
+            'code',
+            'name',
+            'capacity',
+            'owner',
+            'computer',
+            'hostel',
+            'address',
             'status',
             'created',
             'created_by',

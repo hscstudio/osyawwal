@@ -3,7 +3,11 @@
 namespace backend\models;
 
 use Yii;
-
+use yii\db\ActiveRecord;								
+use yii\behaviors\TimestampBehavior;
+use yii\behaviors\AttributeBehavior;
+use yii\db\Expression;
+use yii\behaviors\BlameableBehavior;
 /**
  * This is the model class for table "room".
  *
@@ -34,15 +38,39 @@ class Room extends \yii\db\ActiveRecord
     {
         return 'room';
     }
-
+	
+	/**
+     * @inheritdoc
+     */	
+    public function behaviors()
+    {
+        return [
+            'timestamp' => [
+                'class' => TimestampBehavior::className(),
+                'attributes' => [
+                        ActiveRecord::EVENT_BEFORE_INSERT => ['created','modified'],
+                        ActiveRecord::EVENT_BEFORE_UPDATE => 'modified',
+                ],
+                'value' => new Expression('NOW()'),
+            ],
+            'blameable' => [
+                'class' => BlameableBehavior::className(),
+                'attributes' => [
+                        ActiveRecord::EVENT_BEFORE_INSERT => ['created_by','modified_by'],
+                        ActiveRecord::EVENT_BEFORE_UPDATE => 'modified_by',
+                ],
+            ],
+        ];
+    }
+	
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['code', 'name'], 'required'],
-            [['capacity', 'owner', 'computer', 'hostel', 'status', 'created_by', 'modified_by', 'satker_id'], 'integer'],
+            [['satker_id', 'code', 'name'], 'required'],
+            [['satker_id', 'capacity', 'owner', 'computer', 'hostel', 'status', 'created_by', 'modified_by'], 'integer'],
             [['created', 'modified'], 'safe'],
             [['code'], 'string', 'max' => 25],
             [['name', 'address'], 'string', 'max' => 255],
@@ -57,7 +85,7 @@ class Room extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
-			'satker_id' => Yii::t('app', 'Satker'),
+            'satker_id' => Yii::t('app', 'Satker ID'),
             'code' => Yii::t('app', 'Code'),
             'name' => Yii::t('app', 'Name'),
             'capacity' => Yii::t('app', 'Capacity'),

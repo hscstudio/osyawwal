@@ -45,6 +45,49 @@ $this->params['breadcrumbs'][] = $this->title;
 			Box::end();
 			?>
 			</div>
+			
+			<div class="col-md-3">
+			<?php
+			Box::begin([
+				'type'=>'small', // ,small, solid, tiles
+				'bgColor'=>'aqua', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bodyOptions' => [],
+				'icon' => 'fa fa-fw fa-home',
+				'link' => ['room','id'=>$model->id],
+				'footerOptions' => [
+					'class' => 'dashboard-hide',
+				],
+				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
+			]);
+			?>
+			<h3>Room</h3>
+			<p>Room of Training</p>
+			<?php
+			Box::end();
+			?>
+			</div>
+			
+			<div class="col-md-3">
+			<?php
+			Box::begin([
+				'type'=>'small', // ,small, solid, tiles
+				'bgColor'=>'green', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bodyOptions' => [],
+				'icon' => 'fa fa-fw fa-user-md',
+				'link' => ['student','id'=>$model->id],
+				'footerOptions' => [
+					'class' => 'dashboard-hide',
+				],
+				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
+			]);
+			?>
+			<h3>Student</h3>
+			<p>Student of Training</p>
+			<?php
+			Box::end();
+			?>
+			</div>
+			
 			<div class="col-md-3">
 			<?php
 			Box::begin([
@@ -65,22 +108,23 @@ $this->params['breadcrumbs'][] = $this->title;
 			Box::end();
 			?>
 			</div>
+			
 			<div class="col-md-3">
 			<?php
 			Box::begin([
 				'type'=>'small', // ,small, solid, tiles
-				'bgColor'=>'green', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bgColor'=>'purple', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
 				'bodyOptions' => [],
-				'icon' => 'fa fa-fw fa-user-md',
-				'link' => ['student','id'=>$model->id],
+				'icon' => 'fa fa-fw fa-money',
+				'link' => ['honorarium','id'=>$model->id],
 				'footerOptions' => [
 					'class' => 'dashboard-hide',
 				],
 				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
 			]);
 			?>
-			<h3>Student</h3>
-			<p>Student of Training</p>
+			<h3>Honorarium</h3>
+			<p>Honorarium of Training</p>
 			<?php
 			Box::end();
 			?>

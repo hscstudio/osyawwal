@@ -6,16 +6,16 @@ use kartik\grid\GridView;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $searchModel backend\modules\pusdiklat\execution\models\TrainingStudentSearch */
+/* @var $searchModel backend\modules\pusdiklat\general\models\RoomSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
-$this->title = Yii::t('app', 'Training Students');
+$this->title = Yii::t('app', 'Rooms');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="training-student-index">
+<div class="room-index">
 	
 <!--
     <h1><?= Html::encode($this->title) ?></h1>
@@ -23,7 +23,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
         <?= Html::a(Yii::t('app', 'Create {modelClass}', [
-    'modelClass' => 'Training Student',
+    'modelClass' => 'Room',
 ]), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 -->
@@ -33,32 +33,55 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'kartik\grid\SerialColumn'],
-
-            // 'id',
             
-				[
-					'attribute' => 'training_id',
-					'vAlign'=>'middle',
-					'hAlign'=>'center',
-					'headerOptions'=>['class'=>'kv-sticky-column'],
-					'contentOptions'=>['class'=>'kv-sticky-column'],					
-				],
-            
-				[
-					'attribute' => 'student_id',
-					'vAlign'=>'middle',
-					'hAlign'=>'center',
-					'headerOptions'=>['class'=>'kv-sticky-column'],
-					'contentOptions'=>['class'=>'kv-sticky-column'],					
-				],
-            
-				[
-					'attribute' => 'status',
-					'vAlign'=>'middle',
-					'hAlign'=>'center',
-					'headerOptions'=>['class'=>'kv-sticky-column'],
-					'contentOptions'=>['class'=>'kv-sticky-column'],					
-				],
+			[
+				'attribute' => 'code',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'100px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],					
+			],
+		
+			[
+				'attribute' => 'name',
+				'header' => '<div style="text-align:center;">Name</div>',
+				'vAlign'=>'middle',
+				'hAlign'=>'left',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],					
+			],
+		
+			[
+				'attribute' => 'capacity',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'100px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+			],
+		
+			[
+				'attribute' => 'computer',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'100px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+			],
+		
+			[
+				'attribute' => 'hostel',
+				'vAlign'=>'middle',
+				'hAlign'=>'center',
+				'width'=>'100px',
+				'headerOptions'=>['class'=>'kv-sticky-column'],
+				'contentOptions'=>['class'=>'kv-sticky-column'],
+			],
+            // 'computer',
+            // 'hostel',
+            // 'address',
+            // 'status',
             // 'created',
             // 'created_by',
             // 'modified',

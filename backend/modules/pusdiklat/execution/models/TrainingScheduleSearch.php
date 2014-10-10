@@ -12,15 +12,16 @@ use backend\models\TrainingSchedule;
  */
 class TrainingScheduleSearch extends TrainingSchedule
 {
-    public $startDate, $finishDate;
+	public $startDate, $endDate;
+
 	/**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'training_class_id', 'training_class_subject_id', 'activity_room_id','status', 'created_by', 'modified_by'], 'integer'],
-            [['activity', 'pic', 'start', 'end', 'created', 'modified'], 'safe'],
+            [['id', 'training_class_id', 'training_class_subject_id', 'activity_room_id', 'status', 'created_by', 'modified_by'], 'integer'],
+            [['activity', 'pic', 'start', 'end', 'created', 'modified','startDate', 'endDate'], 'safe'],
             [['hours'], 'number'],
         ];
     }
@@ -69,18 +70,17 @@ class TrainingScheduleSearch extends TrainingSchedule
             'modified' => $this->modified,
             'modified_by' => $this->modified_by,
         ]);
-		
+
         $query->andFilterWhere(['like', 'activity', $this->activity])
-              ->andFilterWhere(['like', 'pic', $this->pic]);
-
-        if($this->startDate == $this->finishDate) {
-            $query->andFilterWhere(['=', 'date(start)', $this->startDate]);
-        }
-        else{
-            $query->andFilterWhere(['>=', 'date(start)', $this->startDate]);
-            $query->andFilterWhere(['<=', 'date(end)', $this->finishDate]);
-        }
-
+            ->andFilterWhere(['like', 'pic', $this->pic]);
+		
+		if(!empty($this->startDate)){
+			$query->andFilterWhere(['>=', 'start', $this->startDate]);
+		}
+		
+		if(!empty($this->endDate)){
+            $query->andFilterWhere(['<=', 'end', $this->endDate]);
+		}
         return $dataProvider;
     }
 }

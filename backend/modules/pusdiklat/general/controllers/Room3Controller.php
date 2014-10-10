@@ -1,18 +1,18 @@
 <?php
 
-namespace backend\modules\pusdiklat\execution\controllers;
+namespace backend\modules\pusdiklat\general\controllers;
 
 use Yii;
-use backend\models\TrainingClass;
-use backend\modules\pusdiklat\execution\models\TrainingClassSearch;
+use backend\models\Room;
+use backend\modules\pusdiklat\general\models\RoomSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * TrainingController implements the CRUD actions for TrainingClass model.
+ * Room3Controller implements the CRUD actions for Room model.
  */
-class TrainingController extends Controller
+class Room3Controller extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()
@@ -28,12 +28,12 @@ class TrainingController extends Controller
     }
 
     /**
-     * Lists all TrainingClass models.
+     * Lists all Room models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new TrainingClassSearch();
+        $searchModel = new RoomSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -43,7 +43,7 @@ class TrainingController extends Controller
     }
 
     /**
-     * Displays a single TrainingClass model.
+     * Displays a single Room model.
      * @param integer $id
      * @return mixed
      */
@@ -55,15 +55,20 @@ class TrainingController extends Controller
     }
 
     /**
-     * Creates a new TrainingClass model.
+     * Creates a new Room model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new TrainingClass();
+        $model = new Room([
+			'status' => 1,
+			'capacity' => 30,
+			'owner' => 1,
+		]);
 
         if ($model->load(Yii::$app->request->post())){ 
+			$model->satker_id = (int)Yii::$app->user->identity->employee->satker_id;
 			if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'New data have saved.');
 			}
@@ -79,7 +84,7 @@ class TrainingController extends Controller
     }
 
     /**
-     * Updates an existing TrainingClass model.
+     * Updates an existing Room model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
@@ -99,12 +104,13 @@ class TrainingController extends Controller
         } else {
             return $this->render('update', [
                 'model' => $model,
+				
             ]);
         }
     }
 
     /**
-     * Deletes an existing TrainingClass model.
+     * Deletes an existing Room model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
@@ -121,15 +127,21 @@ class TrainingController extends Controller
     }
 
     /**
-     * Finds the TrainingClass model based on its primary key value.
+     * Finds the Room model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return TrainingClass the loaded model
+     * @return Room the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = TrainingClass::findOne($id)) !== null) {
+        $satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+		if (($model = Room::find()
+				->where([
+					'id' => $id,
+					'satker_id' => $satker_id
+				])
+				->one()) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');

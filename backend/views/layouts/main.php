@@ -164,7 +164,7 @@ AppAsset::register($this);
 
 			function lockScreen() {
 				stop = true;
-				window.location.href = '".\yii\helpers\Url::toRoute(['/site/lock-screen'])."';
+				window.location.href = '".\yii\helpers\Url::toRoute(['/site/lock-screen'])."?previous='+window.location.href;
 			}
 			
 			function lockIdentity(){
@@ -180,7 +180,7 @@ AppAsset::register($this);
 				}
 				else{
 					clearTimeout(autoLockTimer);
-					autoLockTimer = setTimeout(lockIdentity, 1000*60*15);  // time is in milliseconds						
+					autoLockTimer = setTimeout(lockIdentity, 1000*15*60);  // time is in milliseconds						
 				}
 					
 			}
