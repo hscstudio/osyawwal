@@ -1444,4 +1444,31 @@ class Activity2Controller extends Controller
     }
 
 
+
+
+
+
+    public function actionDeleteClassStudent($id, $class_id, $training_class_student_id)
+    {
+        $model = $this->findModelClassStudent($training_class_student_id);
+		$model->delete();
+		
+		Yii::$app->getSession()->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Data have deleted.');
+        return $this->redirect(['class-student', 'id' => $id, 'class_id' => $class_id]);
+    }
+
+
+
+
+
+    protected function findModelClassStudent($id)
+    {
+        if (($model = TrainingClassStudent::findOne($id)) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+
+
 }

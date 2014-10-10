@@ -90,7 +90,7 @@ $this->params['breadcrumbs'][] = $this->title;
 					'delete' => function ($url, $model) {
 								$icon='<span class="fa fa-fw fa-trash"></span>';
 								return Html::a($icon,
-									['delete-student','id'=>$model->id],
+									['delete-class-student', 'id'=>$model->training_id,'class_id'=>$model->training_class_id,'training_class_student_id'=>$model->id],
 									[
 										'data-pjax'=>'0',
 										'data-confirm'=>'Are you sure you want delete this item!',
