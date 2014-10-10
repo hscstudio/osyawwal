@@ -1565,13 +1565,13 @@ class ActivityController extends Controller
 		}
 		
 		if(empty($end) or $end<$start){
-			$end = $start.' 23:59:59';
+			$end = $start;
 		}
 		$searchModel = new TrainingScheduleSearch();
 		$queryParams['TrainingScheduleSearch']=[				
 			'training_class_id'=>$class_id,
-			'startDate' => $start,
-			'endDate'=>$end,
+			'startDate' => date('Y-m-d',strtotime($start)),
+			'endDate'=>date('Y-m-d',strtotime($start)),
 		];		
 		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
         $dataProvider = $searchModel->search($queryParams);
@@ -1608,6 +1608,13 @@ class ActivityController extends Controller
     }
 	
 	public function actionClassScheduleMaxTime($id, $class_id,$start=""){
+		$activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+
+		if(empty($start)){
+			$start = $class->training->activity->start;
+		}
+		
 		$start = date('Y-m-d',strtotime($start)); 
 		$end =  date('Y-m-d',(strtotime($start)+ 60*60*24));
 		$trainingSchedule = TrainingSchedule::find()
@@ -1732,6 +1739,144 @@ class ActivityController extends Controller
 			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
 		}
     } 
+	
+	public function actionDeleteActivityClassSchedule($id, $class_id, $schedule_id) 
+    { 	
+		$activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		if (Yii::$app->request->isAjax){
+			//CHECKING SATKER
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			if ($satker_id!=$activity->satker_id){
+				die('|0|You have not privileges');
+			}
+			
+			$trainingSchedule = \backend\models\TrainingSchedule::find()->where([
+				'id'=>$schedule_id,
+				'training_class_id'=>$class_id,
+			])->one();
+			$start = $trainingSchedule->start;
+			if($trainingSchedule->delete()) {
+				Yii::$app->session->setFlash('success', 'Delete activity success');
+				die('|1|Activity have deleted|'.date('Y-m-d',strtotime($start)).'|'.date('H:i',strtotime($start)));
+			}
+			else{
+				die('|0|There are some error');
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', 'Only for ajax request');
+			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
+		} 
+	}
+	
+	public function actionRoomClassSchedule($id, $class_id, $schedule_id) 
+    {
+        $activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		if (Yii::$app->request->isAjax){
+			$model = TrainingSchedule::findOne($schedule_id);
+			$dataRoom = [];
+			$activityRoom = ActivityRoom::find()
+				->where([
+					'activity_id'=>$activity->id,
+					'status'=>2 // Approved only	
+				])
+				->all();
+			foreach ($activityRoom as $ar){
+				$dataRoom[$ar->room_id] = $ar->room->name;
+			}
+			if (Yii::$app->request->post()) {	
+				$model->activity_room_id = Yii::$app->request->post('TrainingSchedule')['activity_room_id'];
+				if($model->save()) {
+					Yii::$app->session->setFlash('success', 'Room have set');
+					die('|1|Room have set|'.date('Y-m-d',strtotime($model->start)).'|'.date('H:i',strtotime($model->end)));
+					
+				}
+				else{
+					die('|0|There are some error');
+				}
+			}
+			else{
+				return $this->renderAjax('roomSchedule', [
+					'model' => $model,
+					'activity' => $activity,
+					'class' => $class,
+					'dataRoom' => $dataRoom
+				]);
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', 'Only for ajax request');
+			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
+		} 
+    }
+	
+	public function actionTrainerClassSchedule($id, $class_id, $schedule_id) 
+    {
+        $activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		if (Yii::$app->request->isAjax){
+			$model = new \backend\models\TrainingScheduleTrainer();
+			$trainingSchedule = TrainingSchedule::findOne($schedule_id);
+			$trainingSubjectTrainerRecommendation =\backend\models\TrainingSubjectTrainerRecommendation::find()
+			->where([
+				'training_id'=>$activity->id,
+				'program_subject_id'=>$trainingSchedule->trainingClassSubject->program_subject_id,
+				'status'=>1,
+			])
+			->groupBy('type')
+			->all();
+			if ($model->load(Yii::$app->request->post())) {
+				$trainer_id_array = Yii::$app->request->post('trainer_id_array');
+				
+				$insert=0;
+				foreach($trainer_id_array as $trainer_id=>$on){
+					$model2 = new \backend\models\TrainingScheduleTrainer();
+					$model2->training_schedule_id = $schedule_id;
+					$trainingSubjectTrainerRecommendation=\backend\models\TrainingSubjectTrainerRecommendation::find()
+					->where([
+						'training_id'=>$activity->id,
+						'program_subject_id'=>$trainingSchedule->trainingClassSubject->program_subject_id,
+						'trainer_id'=>$trainer_id,
+						'status'=>1,
+					])
+					->one();
+					$model2->type=$trainingSubjectTrainerRecommendation->type;
+					$model2->trainer_id = $trainer_id;
+					$model2->status = 1;
+					if($model2->save()) {
+						$insert++;
+					}
+					else{
+						die('|0|There are some error'.print_r($model2->errors));
+					}
+				}
+				
+				if($insert>0) {
+					Yii::$app->session->setFlash('success', 'Trainer have added');
+					die('|1|Trainer have added|'.date('Y-m-d',strtotime($trainingSchedule->start)).'|'.date('H:i',strtotime($trainingSchedule->end)));
+				}
+				else{
+					die('|0|No trainer added');
+				} 
+			}
+			else{				
+				return $this->renderAjax('trainerSchedule', [
+					'model' => $model,
+					'activity' => $activity,
+					'class' => $class,
+					'trainingSchedule' => $trainingSchedule,
+					'trainingSubjectTrainerRecommendation' => $trainingSubjectTrainerRecommendation,
+					
+				]);
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', 'Only for ajax request');
+			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
+		} 
+    }
 	
 	 /**
      * Lists all TrainingClass models.
