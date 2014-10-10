@@ -35,11 +35,11 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 
 
 
-    public function actionUpdate($idSubjects, $tb_training_schedule_id)
+    public function actionUpdate($idSubjects, $training_schedule_id)
     {
 
 		// Mbelah id schedule, kalau jamak
-		$idSchedule = explode('_', $tb_training_schedule_id);
+		$idSchedule = explode('_', $training_schedule_id);
 		// dah
 
 		// Ngambil schedule
@@ -59,10 +59,10 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 		for ($i = 0; $i < count($modelTrainingSchedule); $i++) {
 			
 			if ($referenceClass == '') {
-				$referenceClass = $modelTrainingSchedule[$i]['tb_training_class_id'];
+				$referenceClass = $modelTrainingSchedule[$i]['training_class_id'];
 			}
 
-			if ($modelTrainingSchedule[$i]['tb_training_class_id'] != $referenceClass) {
+			if ($modelTrainingSchedule[$i]['training_class_id'] != $referenceClass) {
 				$different = true;
 			}
 
@@ -78,15 +78,15 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 		$dataProvider = new ActiveDataProvider([
 			'query' => TrainingScheduleTrainer::find()
 			->where([
-				'tb_training_schedule_id' => $idSchedule
+				'training_schedule_id' => $idSchedule
 			])
-			->groupBy('tb_trainer_id')
+			->groupBy('trainer_id')
 		]);
 		// dah
 		
         return $this->render('update', [
             'dataProvider' => $dataProvider,
-            'tb_training_class_id' => $referenceClass,
+            'training_class_id' => $referenceClass,
             'idSchedule' => $idSchedule
         ]);
 
@@ -165,7 +165,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 			$OpenTBS->LoadTemplate($template); // Also merge some [onload] automatic fields (depends of the type of document).
 			$OpenTBS->VarRef['modelName']= "TrainingScheduleTrainerAttendance";
 			$data1[]['col0'] = 'id';			
-			$data1[]['col1'] = 'tb_training_schedule_trainer_id';			
+			$data1[]['col1'] = 'training_schedule_trainer_id';			
 			$data1[]['col2'] = 'hours';			
 			$data1[]['col3'] = 'reason';			
 	
@@ -174,7 +174,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 			foreach($dataProvider->getModels() as $trainingscheduletrainerattendance){
 				$data2[] = [
 					'col0'=>$trainingscheduletrainerattendance->id,
-					'col1'=>$trainingscheduletrainerattendance->tb_training_schedule_trainer_id,
+					'col1'=>$trainingscheduletrainerattendance->training_schedule_trainer_id,
 					'col2'=>$trainingscheduletrainerattendance->hours,
 					'col3'=>$trainingscheduletrainerattendance->reason,
 				];
@@ -214,7 +214,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 					$idx=2; // line 2
 					foreach($dataProvider->getModels() as $trainingscheduletrainerattendance){
 						$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingscheduletrainerattendance->id)
-													  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->tb_training_schedule_trainer_id)
+													  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->training_schedule_trainer_id)
 													  ->setCellValue('C'.$idx, $trainingscheduletrainerattendance->hours)
 													  ->setCellValue('D'.$idx, $trainingscheduletrainerattendance->reason);
 						$idx++;
@@ -245,7 +245,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 					$idx=2; // line 2
 					foreach($dataProvider->getModels() as $trainingscheduletrainerattendance){
 						$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingscheduletrainerattendance->id)
-													  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->tb_training_schedule_trainer_id)
+													  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->training_schedule_trainer_id)
 													  ->setCellValue('C'.$idx, $trainingscheduletrainerattendance->hours)
 													  ->setCellValue('D'.$idx, $trainingscheduletrainerattendance->reason);
 						$idx++;
@@ -293,7 +293,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 						$idx=2; // line 2
 						foreach($dataProvider->getModels() as $trainingscheduletrainerattendance){
 							$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingscheduletrainerattendance->id)
-														  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->tb_training_schedule_trainer_id)
+														  ->setCellValue('B'.$idx, $trainingscheduletrainerattendance->training_schedule_trainer_id)
 														  ->setCellValue('C'.$idx, $trainingscheduletrainerattendance->hours)
 														  ->setCellValue('D'.$idx, $trainingscheduletrainerattendance->reason);
 							$idx++;
@@ -365,7 +365,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 						$read_status = true;
 						$abjadX=array();
 						//$id=  $sheetData[$baseRow]['A'];
-						$tb_training_schedule_trainer_id=  $sheetData[$baseRow]['B'];
+						$training_schedule_trainer_id=  $sheetData[$baseRow]['B'];
 						$hours=  $sheetData[$baseRow]['C'];
 						$reason=  $sheetData[$baseRow]['D'];
 						$status=  $sheetData[$baseRow]['E'];
@@ -378,7 +378,7 @@ class TrainingScheduleTrainerAttendanceController extends Controller
 
 						$model2=new TrainingScheduleTrainerAttendance;
 						//$model2->id=  $id;
-						$model2->tb_training_schedule_trainer_id=  $tb_training_schedule_trainer_id;
+						$model2->training_schedule_trainer_id=  $training_schedule_trainer_id;
 						$model2->hours=  $hours;
 						$model2->reason=  $reason;
 						$model2->status=  $status;

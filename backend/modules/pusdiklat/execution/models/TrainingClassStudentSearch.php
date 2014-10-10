@@ -42,14 +42,10 @@ class TrainingClassStudentSearch extends TrainingClassStudent
      */
     public function search($params)
     {
-        $query = TrainingClassStudent::find()
-			->joinWith('trainingStudent')
-			->joinWith('trainingStudent.student')
-			->joinWith('trainingStudent.student.person');
+        $query = TrainingClassStudent::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
-			'sort' => ['defaultOrder'=>'person.name asc']
         ]);
 
         if (!($this->load($params) && $this->validate())) {
@@ -61,13 +57,14 @@ class TrainingClassStudentSearch extends TrainingClassStudent
             'training_id' => $this->training_id,
             'training_class_id' => $this->training_class_id,
             'training_student_id' => $this->training_student_id,
+            'number' => $this->number,
             'head_class' => $this->head_class,
             'activity' => $this->activity,
             'presence' => $this->presence,
             'pre_test' => $this->pre_test,
             'post_test' => $this->post_test,
             'test' => $this->test,
-            'training_class_student.status' => $this->status,
+            'status' => $this->status,
             'created' => $this->created,
             'created_by' => $this->created_by,
             'modified' => $this->modified,

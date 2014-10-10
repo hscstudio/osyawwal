@@ -3,16 +3,18 @@
 namespace backend\modules\pusdiklat\execution\controllers;
 
 use Yii;
-use backend\models\TrainingClassStudentAttendance;
-use backend\models\TrainingClassStudentAttendanceSearch;
-use backend\models\TrainingClassStudent;
-use backend\models\TrainingClassStudentSearch;
-use backend\models\TrainingSchedule;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+
+use backend\models\TrainingClassStudentAttendance;
+use backend\models\TrainingClassStudentAttendanceSearch;
+use backend\models\TrainingClassStudent;
+use backend\models\TrainingSchedule;
+
+use backend\modules\pusdiklat\execution\models\TrainingClassStudentSearch;
 
 class TrainingClassStudentAttendanceController extends Controller
 {
@@ -38,11 +40,11 @@ class TrainingClassStudentAttendanceController extends Controller
 
 
 
-    public function actionUpdate($idSubjects, $tb_training_schedule_id)
+    public function actionUpdate($idSubjects, $training_schedule_id)
     {
 
 		// Mbelah id schedule, kalau jamak
-		$idSchedule = explode('_', $tb_training_schedule_id);
+		$idSchedule = explode('_', $training_schedule_id);
 		// dah
 
 		// Ngambil schedule
@@ -62,10 +64,10 @@ class TrainingClassStudentAttendanceController extends Controller
 		for ($i = 0; $i < count($modelTrainingSchedule); $i++) {
 			
 			if ($referenceClass == '') {
-				$referenceClass = $modelTrainingSchedule[$i]['tb_training_class_id'];
+				$referenceClass = $modelTrainingSchedule[$i]['training_class_id'];
 			}
 
-			if ($modelTrainingSchedule[$i]['tb_training_class_id'] != $referenceClass) {
+			if ($modelTrainingSchedule[$i]['training_class_id'] != $referenceClass) {
 				$different = true;
 			}
 
@@ -78,22 +80,22 @@ class TrainingClassStudentAttendanceController extends Controller
 		// dah
 
 		// Input tabel attendance dg schedule_id dan student_id
-		$readyInjectStudent2Attendance = TrainingClassStudent::find()->where(['tb_training_class_id' => $referenceClass])->all();
+		$readyInjectStudent2Attendance = TrainingClassStudent::find()->where(['training_class_id' => $referenceClass])->all();
 
 		for ($i = 0; $i < count($idSchedule); $i++) {						// Ngeloop dulu, siapa tau schedule_id nya lebih dari 1
 			foreach ($readyInjectStudent2Attendance as $row) {						// Dari sini, mulai nginject
 				$injector = TrainingClassStudentAttendance::find()
 					->where([
-						'tb_training_schedule_id' => $idSchedule[$i],
-						'tb_training_class_student_id' => $row->id
+						'training_schedule_id' => $idSchedule[$i],
+						'training_class_student_id' => $row->id
 					])
 					->one();
 
 				// Cek uda ada record ga?
 				if ($injector === null) {
 					$injector = new TrainingClassStudentAttendance;
-					$injector->tb_training_schedule_id = $idSchedule[$i];
-					$injector->tb_training_class_student_id = $row->id;
+					$injector->training_schedule_id = $idSchedule[$i];
+					$injector->training_class_student_id = $row->id;
 					$injector->hours = $modelTrainingSchedule[$i]->hours;
 					$injector->status = 1;
 					$injector->save();
@@ -106,7 +108,7 @@ class TrainingClassStudentAttendanceController extends Controller
 		$searchModel = new TrainingClassStudentSearch(); 
 
 		$queryParams['TrainingClassStudentSearch'] = [
-			'tb_training_class_id' => $referenceClass
+			'training_class_id' => $referenceClass
 		];
 
 		$queryParams = ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
@@ -117,8 +119,8 @@ class TrainingClassStudentAttendanceController extends Controller
         return $this->render('update', [
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'tb_training_schedule_id' => $tb_training_schedule_id,
-            'tb_training_class_id' => $referenceClass,
+            'training_schedule_id' => $training_schedule_id,
+            'training_class_id' => $referenceClass,
             'idSchedule' => $idSchedule
         ]);
 
@@ -140,8 +142,8 @@ class TrainingClassStudentAttendanceController extends Controller
 
 		$modelTrainingClassStudentAttendance = TrainingClassStudentAttendance::find()
 			->where([
-				'tb_training_class_student_id' => Yii::$app->request->post('tb_training_class_student_id'),
-				'tb_training_schedule_id' => Yii::$app->request->post('tb_training_schedule_id'),
+				'training_class_student_id' => Yii::$app->request->post('training_class_student_id'),
+				'training_schedule_id' => Yii::$app->request->post('training_schedule_id'),
 			])
 			->one();
 
@@ -196,8 +198,8 @@ class TrainingClassStudentAttendanceController extends Controller
 			$OpenTBS->LoadTemplate($template); // Also merge some [onload] automatic fields (depends of the type of document).
 			$OpenTBS->VarRef['modelName']= "TrainingClassStudentAttendance";
 			$data1[]['col0'] = 'id';			
-			$data1[]['col1'] = 'tb_training_schedule_id';			
-			$data1[]['col2'] = 'tb_training_class_student_id';			
+			$data1[]['col1'] = 'training_schedule_id';			
+			$data1[]['col2'] = 'training_class_student_id';			
 			$data1[]['col3'] = 'hours';			
 	
 			$OpenTBS->MergeBlock('a', $data1);			
@@ -205,8 +207,8 @@ class TrainingClassStudentAttendanceController extends Controller
 			foreach($dataProvider->getModels() as $trainingclassstudentattendance){
 				$data2[] = [
 					'col0'=>$trainingclassstudentattendance->id,
-					'col1'=>$trainingclassstudentattendance->tb_training_schedule_id,
-					'col2'=>$trainingclassstudentattendance->tb_training_class_student_id,
+					'col1'=>$trainingclassstudentattendance->training_schedule_id,
+					'col2'=>$trainingclassstudentattendance->training_class_student_id,
 					'col3'=>$trainingclassstudentattendance->hours,
 				];
 			}
@@ -245,8 +247,8 @@ class TrainingClassStudentAttendanceController extends Controller
 					$idx=2; // line 2
 					foreach($dataProvider->getModels() as $trainingclassstudentattendance){
 						$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingclassstudentattendance->id)
-													  ->setCellValue('B'.$idx, $trainingclassstudentattendance->tb_training_schedule_id)
-													  ->setCellValue('C'.$idx, $trainingclassstudentattendance->tb_training_class_student_id)
+													  ->setCellValue('B'.$idx, $trainingclassstudentattendance->training_schedule_id)
+													  ->setCellValue('C'.$idx, $trainingclassstudentattendance->training_class_student_id)
 													  ->setCellValue('D'.$idx, $trainingclassstudentattendance->hours);
 						$idx++;
 					}		
@@ -276,8 +278,8 @@ class TrainingClassStudentAttendanceController extends Controller
 					$idx=2; // line 2
 					foreach($dataProvider->getModels() as $trainingclassstudentattendance){
 						$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingclassstudentattendance->id)
-													  ->setCellValue('B'.$idx, $trainingclassstudentattendance->tb_training_schedule_id)
-													  ->setCellValue('C'.$idx, $trainingclassstudentattendance->tb_training_class_student_id)
+													  ->setCellValue('B'.$idx, $trainingclassstudentattendance->training_schedule_id)
+													  ->setCellValue('C'.$idx, $trainingclassstudentattendance->training_class_student_id)
 													  ->setCellValue('D'.$idx, $trainingclassstudentattendance->hours);
 						$idx++;
 					}		
@@ -324,8 +326,8 @@ class TrainingClassStudentAttendanceController extends Controller
 						$idx=2; // line 2
 						foreach($dataProvider->getModels() as $trainingclassstudentattendance){
 							$objPHPExcel->getActiveSheet()->setCellValue('A'.$idx, $trainingclassstudentattendance->id)
-														  ->setCellValue('B'.$idx, $trainingclassstudentattendance->tb_training_schedule_id)
-														  ->setCellValue('C'.$idx, $trainingclassstudentattendance->tb_training_class_student_id)
+														  ->setCellValue('B'.$idx, $trainingclassstudentattendance->training_schedule_id)
+														  ->setCellValue('C'.$idx, $trainingclassstudentattendance->training_class_student_id)
 														  ->setCellValue('D'.$idx, $trainingclassstudentattendance->hours);
 							$idx++;
 						}		
@@ -396,8 +398,8 @@ class TrainingClassStudentAttendanceController extends Controller
 						$read_status = true;
 						$abjadX=array();
 						//$id=  $sheetData[$baseRow]['A'];
-						$tb_training_schedule_id=  $sheetData[$baseRow]['B'];
-						$tb_training_class_student_id=  $sheetData[$baseRow]['C'];
+						$training_schedule_id=  $sheetData[$baseRow]['B'];
+						$training_class_student_id=  $sheetData[$baseRow]['C'];
 						$hours=  $sheetData[$baseRow]['D'];
 						$reason=  $sheetData[$baseRow]['E'];
 						$status=  $sheetData[$baseRow]['F'];
@@ -410,8 +412,8 @@ class TrainingClassStudentAttendanceController extends Controller
 
 						$model2=new TrainingClassStudentAttendance;
 						//$model2->id=  $id;
-						$model2->tb_training_schedule_id=  $tb_training_schedule_id;
-						$model2->tb_training_class_student_id=  $tb_training_class_student_id;
+						$model2->training_schedule_id=  $training_schedule_id;
+						$model2->training_class_student_id=  $training_class_student_id;
 						$model2->hours=  $hours;
 						$model2->reason=  $reason;
 						$model2->status=  $status;

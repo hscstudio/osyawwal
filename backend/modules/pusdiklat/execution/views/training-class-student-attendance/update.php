@@ -7,6 +7,7 @@ use kartik\widgets\ActiveForm;
 use kartik\widgets\AlertBlock;
 use kartik\widgets\Growl;
 use kartik\grid\GridView;
+use backend\models\ProgramSubject;
 use backend\models\TrainingSchedule;
 use backend\models\TrainingClassStudentAttendance;
 
@@ -63,8 +64,15 @@ echo AlertBlock::widget([
     	for ($i = 0; $i < count($idSchedule); $i++) {
     		$currentSchedule = $idSchedule[$i];
     		$modelTrainingSchedule = TrainingSchedule::findOne($idSchedule[$i]);
+    		$programSubjectName = ProgramSubject::find()
+    			->where([
+    				'id' => $modelTrainingSchedule->trainingClassSubject->program_subject_id,
+    				'status' => 1
+    			])
+    			->one()
+    			->name;
     		$columns[] = [
-    			'header' => $modelTrainingSchedule->trainingClassSubject->programSubject->name.'<br>'.date('H:i', strtotime($modelTrainingSchedule->startTime)).'<br>'.$modelTrainingSchedule->hours,
+    			'header' => $programSubjectName.'<br>'.date('H:i', strtotime($modelTrainingSchedule->start)).'<br>'.$modelTrainingSchedule->hours,
 				'vAlign'=>'middle',
 				'format' => 'raw',
 				'width' => '80px',
@@ -75,8 +83,8 @@ echo AlertBlock::widget([
 				'value' => function($model) use ($currentSchedule, $modelTrainingSchedule) {
 					$modelAttendance = TrainingClassStudentAttendance::find()
 						->where([
-							'tb_training_class_student_id' => $model->id,
-							'tb_training_schedule_id' => $currentSchedule
+							'training_class_student_id' => $model->id,
+							'training_schedule_id' => $currentSchedule
 						])
 						->one();
 					return Html::input('text', 'hours', $modelAttendance->hours, [
@@ -100,8 +108,8 @@ echo AlertBlock::widget([
 										url: "editable",
 										data: {
 											hours: $(this).val(),
-											tb_training_schedule_id: "'.$modelAttendance->tb_training_schedule_id.'",
-											tb_training_class_student_id: "'.$modelAttendance->tb_training_class_student_id.'",
+											training_schedule_id: "'.$modelAttendance->training_schedule_id.'",
+											training_class_student_id: "'.$modelAttendance->training_class_student_id.'",
 										},
 										success: function(data) {
 											data = JSON.parse(data);
@@ -144,8 +152,8 @@ echo AlertBlock::widget([
 					'heading'=>'<h3 class="panel-title"><i class="fa fa-fw fa-globe"></i> Attendance</h3>',
 					'before'=>
 						Html::a('<i class="fa fa-fw fa-arrow-left"></i> Back', [
-								'training-class/attendance',
-								'tb_training_class_id' => $tb_training_class_id
+								'activity2/attendance',
+								'training_class_id' => $training_class_id
 							], ['class' => 'btn btn-warning']
 						),
 					'after' => '',

@@ -15,6 +15,7 @@ use kartik\checkbox\CheckboxX;
 
 use backend\models\ActivityRoom;
 use backend\models\ProgramSubjectHistory;
+use backend\models\ProgramSubject;
 use backend\models\TrainingScheduleTrainer;
 use backend\models\TrainingSchedule;
 
@@ -103,15 +104,13 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 					$out = '';
 
 					foreach ($modelTrainingSchedule as $row) {
-						$modelProgramSubjectHistory = ProgramSubjectHistory::find()
+						$modelProgramSubject = ProgramSubject::find()
 						->where([
-							'program_subject_id' => $row->trainingClassSubject->program_subject_id,
-							'program_id' => $row->trainingClassSubject->trainingClass->training->program_id,
-							'revision' => $row->trainingClass->training->program_revision,
+							'id' => $row->trainingClassSubject->program_subject_id,
 							'status' => 1
 						])
 						->one();
-						$out .= $modelProgramSubjectHistory->name.'<br>';
+						$out .= $modelProgramSubject->name.'<br>';
 					}
 
 					return $out;
