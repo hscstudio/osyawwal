@@ -1499,7 +1499,7 @@ class Activity2Controller extends Controller
 				foreach($trainer_id_array as $trainer_id=>$on){
 					$model2 = new \backend\models\TrainingScheduleTrainer();
 					$model2->training_schedule_id = $schedule_id;
-					$trainingSubjectTrainerRecommendation=\backend\models\TrainingSubjectTrainerRecommendation::find()
+					$trainingSubjectTrainerRecommendation = \backend\models\TrainingSubjectTrainerRecommendation::find()
 					->where([
 						'training_id'=>$activity->id,
 						'program_subject_id'=>$trainingSchedule->trainingClassSubject->program_subject_id,
@@ -1509,6 +1509,7 @@ class Activity2Controller extends Controller
 					->one();
 					$model2->type=$trainingSubjectTrainerRecommendation->type;
 					$model2->trainer_id = $trainer_id;
+					$model2->hours = $trainingSchedule->hours;
 					$model2->status = 1;
 					if($model2->save()) {
 						$insert++;
