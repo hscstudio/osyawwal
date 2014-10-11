@@ -176,6 +176,15 @@ echo AlertBlock::widget([
 								'class' => 'btn btn-default pull-right',
 								'style' => 'margin-right:5px',
 								'data-pjax' => '0'
+							]).
+						Html::a('<i class="fa fa-fw fa-table"></i> Print Attendance Recapitulation', [
+								'recap',
+								'training_schedule_id' => $training_schedule_id
+							],
+							[
+								'class' => 'btn btn-default pull-right',
+								'style' => 'margin-right:5px',
+								'data-pjax' => '0'
 							]),
 					'after' => '',
 					'showFooter' => false
