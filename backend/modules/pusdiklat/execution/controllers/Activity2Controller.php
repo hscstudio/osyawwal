@@ -1241,6 +1241,8 @@ class Activity2Controller extends Controller
     public function actionSchedule($training_class_id,$start="",$finish="")
     {
 		$trainingClass = TrainingClass::findOne($training_class_id);
+
+    	$activity = $this->findModel($trainingClass->training->activity->id); // Activity
 		
 		if(empty($start)){
 			$start = $trainingClass->training->activity->start;
@@ -1266,6 +1268,7 @@ class Activity2Controller extends Controller
 				'trainingClass'=>$trainingClass,
 				'start'=>$start,
 				'finish'=>$finish,
+				'activity' => $activity
 			]);
 		}
 		else{
@@ -1275,6 +1278,7 @@ class Activity2Controller extends Controller
 				'trainingClass'=>$trainingClass,
 				'start'=>$start,
 				'finish'=>$finish,
+				'activity' => $activity
 			]);
 		}
     }
@@ -1468,6 +1472,75 @@ class Activity2Controller extends Controller
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+
+
+
+    public function actionTrainerClassSchedule($id, $class_id, $schedule_id) 
+    {
+        $activity = $this->findModel($id); // Activity
+		$class = $this->findModelClass($class_id); // Class	
+		if (Yii::$app->request->isAjax){
+			$model = new \backend\models\TrainingScheduleTrainer();
+			$trainingSchedule = TrainingSchedule::findOne($schedule_id);
+			$trainingSubjectTrainerRecommendation =\backend\models\TrainingSubjectTrainerRecommendation::find()
+			->where([
+				'training_id'=>$activity->id,
+				'program_subject_id'=>$trainingSchedule->trainingClassSubject->program_subject_id,
+				'status'=>1,
+			])
+			->groupBy('type')
+			->all();
+			if ($model->load(Yii::$app->request->post())) {
+				$trainer_id_array = Yii::$app->request->post('trainer_id_array');
+				
+				$insert=0;
+				foreach($trainer_id_array as $trainer_id=>$on){
+					$model2 = new \backend\models\TrainingScheduleTrainer();
+					$model2->training_schedule_id = $schedule_id;
+					$trainingSubjectTrainerRecommendation=\backend\models\TrainingSubjectTrainerRecommendation::find()
+					->where([
+						'training_id'=>$activity->id,
+						'program_subject_id'=>$trainingSchedule->trainingClassSubject->program_subject_id,
+						'trainer_id'=>$trainer_id,
+						'status'=>1,
+					])
+					->one();
+					$model2->type=$trainingSubjectTrainerRecommendation->type;
+					$model2->trainer_id = $trainer_id;
+					$model2->status = 1;
+					if($model2->save()) {
+						$insert++;
+					}
+					else{
+						die('|0|There are some error'.print_r($model2->errors));
+					}
+				}
+				
+				if($insert>0) {
+					Yii::$app->session->setFlash('success', '<i class="fa fa-fw fa-plus-circle"></i>Trainer have added');
+					die('|1|Trainer have added|'.date('Y-m-d',strtotime($trainingSchedule->start)).'|'.date('H:i',strtotime($trainingSchedule->end)));
+				}
+				else{
+					die('|0|No trainer added');
+				} 
+			}
+			else{				
+				return $this->renderAjax('trainerSchedule', [
+					'model' => $model,
+					'activity' => $activity,
+					'class' => $class,
+					'trainingSchedule' => $trainingSchedule,
+					'trainingSubjectTrainerRecommendation' => $trainingSubjectTrainerRecommendation,
+					
+				]);
+			}
+		}
+		else{
+			Yii::$app->session->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i>Only for ajax request');
+			return $this->redirect(['class-schedule', 'id' => $id, 'class_id' => $class_id]);
+		} 
     }
 
 

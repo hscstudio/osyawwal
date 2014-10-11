@@ -441,20 +441,28 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				'headerOptions'=>['class'=>'kv-sticky-column'],
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'format'=>'raw',
-				'value'=>function($model){
-					if($model->training_class_subject_id>0){
-						// FIND PENGAJAR pada training_schedule_trainer (id, training_schedule_id, trainer_id, status);
-						$content = Html::a('<i class="fa fa-plus"></i> Add',['trainer','id'=>$model->id],[
+				'value'=>function($data)use ($activity, $trainingClass){
+					if($data->training_class_subject_id>0){
+						// FIND PENGAJAR pada tb_training_schedule_trainer (id, tb_training_schedule_id, tb_trainer_id, status);
+						$content = Html::a('<i class="fa fa-plus"></i> Add',
+						[
+						'trainer-class-schedule',
+						'id'=>$activity->id,
+						'class_id'=>$trainingClass->id,
+						'schedule_id'=>$data->id,
+						],
+						[
 							'class' => 'label label-success modal-heart',
 							'data-pjax'=>0,
 							'title'=>'Click to add trainer!',
 							'data-toggle'=>"tooltip",
 							'data-placement'=>"top",
+							'modal-size' => 'modal-lg',
 						]);
 						
-						$trainingScheduleTrainer = TrainingScheduleTrainer::find()
+						$trainingScheduleTrainer = \backend\models\TrainingScheduleTrainer::find()
 							->where([
-								'training_schedule_id'=>$model->id,
+								'training_schedule_id'=>$data->id,
 								'status'=>1,
 							])
 							->orderBy('type ASC')
@@ -464,19 +472,19 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 						foreach($trainingScheduleTrainer as $trainer){
 							if($type!=$trainer->type){
 								$content .="<hr style='margin:2px 0'>";
-								$content .="<strong>".$trainer->trainerType->name."</strong>";
+								/* $content .="<strong>".$trainer->trainerType->name."</strong>"; */
 								$content .="<hr style='margin:2px 0'>";
 								$type=$trainer->type;
 								$idx=1;
 							}
 							
 							$content .="<div>";
-							$content .="<span  class='label label-default' data-toggle='tooltip' title='".$trainer->trainer->organization." - ".$trainer->trainer->phone."'>".$idx++.". ".$trainer->trainer->name."</span> ";
+							$content .="<span  class='label label-default' data-toggle='tooltip' title='".$trainer->trainer->person->organisation." - ".$trainer->trainer->person->phone."'>".$idx++.". ".$trainer->trainer->person->name."</span> ";
 							$content .=Html::a('<span class="glyphicon glyphicon-trash"></span>', 
 							[
 							'delete-trainer',
-							'id'=>$model->id,
-							'trainer_id'=>$trainer->trainer_id,
+							'id'=>$data->id,
+							'tb_trainer_id'=>$trainer->trainer_id,
 							], 
 							[
 							'class' => 'label label-danger link-post',
@@ -490,7 +498,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 						}
 					}
 					else{
-						$content = $model->pic;
+						$content = $data->pic;
 					}
 					
 					
