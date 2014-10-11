@@ -9,11 +9,17 @@ use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 
+use PHPExcel_IOFactory;
+use PHPExcel_Style_Alignment;
+
 use backend\models\TrainingClassStudentAttendance;
 use backend\models\TrainingClassStudentAttendanceSearch;
 use backend\models\TrainingClassStudent;
-use backend\models\TrainingClass;
 use backend\models\TrainingSchedule;
+use backend\models\TrainingClass;
+use backend\models\ProgramSubject;
+use backend\models\ObjectReference;
+use backend\models\Reference;
 
 use backend\modules\pusdiklat\execution\models\TrainingClassStudentSearch;
 
@@ -468,4 +474,269 @@ class TrainingClassStudentAttendanceController extends Controller
             'dataProvider' => $dataProvider,
         ]);					
 	}
+
+
+
+
+
+	public function actionPrint($training_schedule_id) {
+
+		// Casting argumen ke array
+		$training_schedule_id = explode('_', $training_schedule_id);
+		// dah
+
+    	// Ngambil training schedule
+    	$modelSchedule = TrainingSchedule::find()
+    		->where([
+    			'id' => $training_schedule_id
+    		])
+    		->all();
+    	// dah
+
+		// Ngecek kelas pada schedule
+		// Jadi schedule2 yang diambil harus sama semua kelasnya
+		// Klo beda berarti ada orang yang mainin requestnya, lempar
+		$different = false;
+		$referenceClass = '';
+		$namaDiklat = '';
+		$namaKelas = '';
+		$namaUnit = '';
+		$tanggalMentah = ''; // Ragu ... mungkin gak sih schedule2 yang diquery tanggal major nya beda??
+		
+		foreach ($modelSchedule as $row) {
+			
+			if ($referenceClass == '') {
+				$referenceClass = $row->training_class_id;
+			}
+
+			if ($row->training_class_id != $referenceClass) {
+				$different = true;
+			}
+
+			$namaDiklat = $row->trainingClass->training->activity->name;
+
+			$namaKelas = $row->trainingClass->class;
+
+			$namaUnit = Reference::findOne($row->trainingClass->training->activity->satker_id)->name;
+
+			$tanggalMentah = date('Y-m-d', strtotime($row->start));
+
+		}
+
+		if ($different) {
+			Yii::$app->session->setFlash('error', '<i class="fa fa-fw fa-times-circle"></i> Attendance form creation should for one class only!');
+			return $this->redirect(['training/index']);
+		}
+		// dah
+
+    	// Ambil template
+    	$template = Yii::getAlias('@backend').'/../file/template/pusdiklat/execution/2.12_contoh_daftar_hadir_peserta_diklat_27082014.xls';
+		$objPHPExcel = PHPExcel_IOFactory::load($template);
+		//dah
+
+		// Ngisi konten
+		$objPHPExcel->getActiveSheet()->setCellValue('A3', $namaUnit);
+		$objPHPExcel->getActiveSheet()->setCellValue('A8', strtoupper($namaDiklat));
+		$objPHPExcel->getActiveSheet()->setCellValue('A9', 'Kelas '.$namaKelas);
+		$objPHPExcel->getActiveSheet()->setCellValue('A10', 'TAHUN ANGGARAN '.date('Y', strtotime($tanggalMentah)));
+		$objPHPExcel->getActiveSheet()->setCellValue('A12', 'Hari / Tanggal: '.date('D, d F Y', strtotime($tanggalMentah)));
+
+
+		$pointerKolomMP = ord('E');
+
+		$jumlahBaris = 0;
+
+		for($i = 0; $i < count($training_schedule_id); $i++) {
+			
+			$jumlahBaris += 0;
+
+			// Ngisi data yang cukup sekali ngeloopnya kyk nomer, nama, nip, unit kerja
+			if ($i == 0) {
+				$modelTrainingClassStudentAttendance = TrainingClassStudentAttendance::find()
+					->where([
+						'training_schedule_id' => $training_schedule_id[$i]
+					])
+					->all();
+
+				$pointerBaris = 17;
+
+				$jumlahBaris += 0;
+
+				// Insert row sejumlah peserta yang ada
+				$objPHPExcel->getActiveSheet()->insertNewRowBefore($pointerBaris+1, count($modelTrainingClassStudentAttendance));
+				// dah
+
+				// Ngisi nomer urut
+				foreach ($modelTrainingClassStudentAttendance as $baris) {
+					
+					$objPHPExcel->getActiveSheet()->setCellValue('A'.$pointerBaris, $pointerBaris-16);
+					
+					$pointerBaris += 1;
+
+					$jumlahBaris += 1;
+				}
+				// dah
+
+				// Ngisi nama
+				$pointerBaris = 17;
+				foreach ($modelTrainingClassStudentAttendance as $baris) {
+					
+					$objPHPExcel->getActiveSheet()->setCellValue('B'.$pointerBaris, 
+						$baris->trainingClassStudent->trainingStudent->student->person->name
+					);
+					
+					$pointerBaris += 1;
+				}
+				// dah
+
+				// Ngisi nip
+				$pointerBaris = 17;
+				foreach ($modelTrainingClassStudentAttendance as $baris) {
+					$objPHPExcel->getActiveSheet()->getCell('C'.$pointerBaris)->setDataType(\PHPExcel_Cell_DataType::TYPE_STRING);
+					$objPHPExcel->getActiveSheet()->setCellValue('C'.$pointerBaris, 
+						$baris->trainingClassStudent->trainingStudent->student->person->nip
+					);
+					
+					$pointerBaris += 1;
+				}
+				// dah
+
+				// Ngisi satker
+				$pointerBaris = 17;
+				foreach ($modelTrainingClassStudentAttendance as $baris) {
+					$unit = "-";
+					$object_reference = ObjectReference::find()
+						->where([
+							'object' => 'person',
+							'object_id' => $baris->trainingClassStudent->trainingStudent->student->person->id,
+							'type' => 'unit',
+						])
+						->one();
+					if(null!=$object_reference){
+						$unit = $object_reference->reference->name;
+					}
+					if($baris->trainingClassStudent->trainingStudent->student->satker==2){
+						if(!empty($baris->trainingClassStudent->trainingStudent->student->eselon2)){
+							$unit = $baris->trainingClassStudent->trainingStudent->student->eselon2;
+						}
+					}
+					else if($baris->trainingClassStudent->trainingStudent->student->satker==3){
+						if(!empty($baris->trainingClassStudent->trainingStudent->student->eselon3)){
+							$unit = $baris->trainingClassStudent->trainingStudent->student->eselon3;
+						}
+					}
+					else if($baris->trainingClassStudent->trainingStudent->student->satker==4){
+						if(!empty($baris->trainingClassStudent->trainingStudent->student->eselon4)){
+							$unit = $baris->trainingClassStudent->trainingStudent->student->eselon4;
+						}
+					}
+					
+					$objPHPExcel->getActiveSheet()->setCellValue('D'.$pointerBaris, 
+						$unit
+					);
+					
+					$pointerBaris += 1;
+				}
+				// dah
+
+			}
+			//dah
+
+			// Ngisi data yang butuh loop khusus yaitu mata pelajaran
+			$modelTrainingSchedule = TrainingSchedule::find()
+				->where(['id' => $training_schedule_id[$i]])
+				->one();
+
+			$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).(17-3), 
+				$objPHPExcel->getActiveSheet()->getCell('E14')->getValue()
+			);
+			$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).(17-2), 
+				$objPHPExcel->getActiveSheet()->getCell('E15')->getValue()
+			);
+			$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).(17-1), 
+				$objPHPExcel->getActiveSheet()->getCell('E16')->getValue()
+			);
+			$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).(17 + $jumlahBaris + 1), 
+				$objPHPExcel->getActiveSheet()->getCell('E'.(17 + $jumlahBaris + 1))->getValue()
+			);
+
+			$objPHPExcel->getActiveSheet()->duplicateStyle($objPHPExcel->getActiveSheet()->getStyle('E14'), chr($pointerKolomMP).'14');
+			$objPHPExcel->getActiveSheet()->duplicateStyle($objPHPExcel->getActiveSheet()->getStyle('E15'), chr($pointerKolomMP).'15');
+			$objPHPExcel->getActiveSheet()->duplicateStyle($objPHPExcel->getActiveSheet()->getStyle('E16'), chr($pointerKolomMP).'16');
+			$objPHPExcel->getActiveSheet()->duplicateStyle($objPHPExcel->getActiveSheet()->getStyle('E'.(17 + $jumlahBaris + 1)), 
+				chr($pointerKolomMP).(17 + $jumlahBaris + 1)
+			);
+
+			for($j = 0; $j < $jumlahBaris; $j++) {
+				$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).(17 + $j), 
+					$objPHPExcel->getActiveSheet()->getCell('E'.(17 + $j))->getValue()
+				);
+
+				$objPHPExcel->getActiveSheet()->duplicateStyle($objPHPExcel->getActiveSheet()->getStyle('E'.(17 + $j)), 
+					chr($pointerKolomMP).(17 + $j)
+				);
+			}
+
+			$objPHPExcel->getActiveSheet()->setCellValue(chr($pointerKolomMP).'15', 
+				'Mata Diklat: '.ProgramSubject::findOne($modelTrainingSchedule->trainingClassSubject->program_subject_id)->name
+			);
+
+			$objPHPExcel->getActiveSheet()->getColumnDimension(chr($pointerKolomMP))->setWidth(20);
+
+			$pointerKolomMP += 1;
+			// dah
+		}
+		// dah
+
+		// Finishing
+		for($z = 1; $z <= $jumlahBaris; $z++) {
+			$objPHPExcel->getActiveSheet()->getRowDimension($z + $jumlahBaris)->setRowHeight(30);
+		}
+
+		$objPHPExcel->getActiveSheet()->getStyle('A17:'.chr($pointerKolomMP).(17 + $jumlahBaris))
+			->getAlignment()
+			->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
+			->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+
+		$objPHPExcel->getActiveSheet()->mergeCells('A1:'.chr($pointerKolomMP - 1).'1');
+		$objPHPExcel->getActiveSheet()->mergeCells('A2:'.chr($pointerKolomMP - 1).'2');
+		$objPHPExcel->getActiveSheet()->mergeCells('A3:'.chr($pointerKolomMP - 1).'3');
+		$objPHPExcel->getActiveSheet()->mergeCells('A4:'.chr($pointerKolomMP - 1).'4');
+		$objPHPExcel->getActiveSheet()->mergeCells('A5:'.chr($pointerKolomMP - 1).'5');
+		$objPHPExcel->getActiveSheet()->mergeCells('A6:'.chr($pointerKolomMP - 1).'6');
+		$objPHPExcel->getActiveSheet()->mergeCells('A7:'.chr($pointerKolomMP - 1).'7');
+		$objPHPExcel->getActiveSheet()->mergeCells('A8:'.chr($pointerKolomMP - 1).'8');
+		$objPHPExcel->getActiveSheet()->mergeCells('A9:'.chr($pointerKolomMP - 1).'9');
+		$objPHPExcel->getActiveSheet()->mergeCells('A10:'.chr($pointerKolomMP - 1).'10');
+		$objPHPExcel->getActiveSheet()->mergeCells('A11:'.chr($pointerKolomMP - 1).'11');
+		$objPHPExcel->getActiveSheet()->mergeCells('A12:'.chr($pointerKolomMP - 1).'12');
+
+		$objPHPExcel->getActiveSheet()->removeRow(17 + $jumlahBaris,1);
+
+		$objPHPExcel->getActiveSheet()->getRowDimension(17 + $jumlahBaris)->setRowHeight(90);
+		// dah
+		
+		// Redirect output to a client’s web browser
+		header('Content-Type: application/vnd.ms-excel');
+
+		header('Content-Disposition: attachment;filename="attendance_class_'.$namaKelas.'_'.$namaDiklat.'.xls"');
+		header('Cache-Control: max-age=0');
+		// If you're serving to IE 9, then the following may be needed
+		header('Cache-Control: max-age=1');
+
+		// If you're serving to IE over SSL, then the following may be needed
+		header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+		header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+		header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+		header ('Pragma: public'); // HTTP/1.0
+		
+		$objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$objWriter->save('php://output');
+		exit;
+
+    }
+
+
+
+
 }

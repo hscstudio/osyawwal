@@ -204,12 +204,7 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				Html::a('<i class="fa fa-fw fa-arrow-left"></i> Back To Training Class', [
 					'class',
 					'id'=>$trainingClass->training_id
-				], ['class' => 'btn btn-warning']).
-				Html::a('<i class="fa fa-fw fa-print"></i> Print Form Attendance', ['print', 'training_class_id' => $trainingClass->id], [
-						'class' => 'btn btn-default pull-right',
-						'style' => 'margin-right:5px',
-						'data-pjax' => '0'
-					])
+				], ['class' => 'btn btn-warning'])
 				,
 			'after'=>Html::a('<i class="fa fa-fw fa-repeat"></i> Reset Grid', ['schedule','training_class_id'=>$trainingClass->id], ['class' => 'btn btn-info']),
 			'showFooter'=>false
