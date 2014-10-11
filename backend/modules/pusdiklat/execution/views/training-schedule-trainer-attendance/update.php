@@ -159,7 +159,16 @@ echo AlertBlock::widget([
 								'activity2/attendance',
 								'training_class_id' => $training_class_id
 							], ['class' => 'btn btn-warning']
-						),
+						).
+						Html::a('<i class="fa fa-fw fa-print"></i> Print Form Attendance', [
+								'print',
+								'training_schedule_id' => $training_schedule_id
+							],
+							[
+								'class' => 'btn btn-default pull-right',
+								'style' => 'margin-right:5px',
+								'data-pjax' => '0'
+							]),
 					'after' => '',
 					'showFooter' => false
 				],
