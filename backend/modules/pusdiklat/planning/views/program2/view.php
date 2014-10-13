@@ -10,7 +10,7 @@ $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
-$this->title = 'Update #'.Inflector::camel2words($model->name);
+$this->title = 'View #'.Inflector::camel2words($model->name);
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Programs'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

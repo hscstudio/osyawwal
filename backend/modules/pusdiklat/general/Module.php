@@ -28,6 +28,9 @@ class Module extends \yii\base\Module
 				]],
 			]],
 			['icon'=>'fa fa-fw fa-link', 'label' => '+ Pengelolaan Aset', 'url' => ['#'], 'items'=>[
+				['icon'=>'fa fa-fw fa-stack-overflow', 'label' => 'Meeting Activity', 'url' => ['activity3/index'],'path'=>[
+					'/activity3/',
+				]],
 				['icon'=>'fa fa-fw fa-stack-overflow', 'label' => 'Room', 'url' => ['room3/index'],'path'=>[
 					'/room3/',
 				]],

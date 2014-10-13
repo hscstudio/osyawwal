@@ -283,15 +283,20 @@ $this->params['breadcrumbs'][] = $this->title;
 
             [
 				'class' => 'kartik\grid\ActionColumn',
-				'template' => '{view} {update}',
+				'template' => '{history} {view} {update}',
+				'width'=>'110px',
 				'buttons' => [
+					'history' => function ($url, $model) {
+						$icon='<span class="fa fa-fw fa-h-square"></span>';
+						return Html::a($icon,$url,['class'=>'btn btn-default btn-xs','data-pjax'=>"0",'title'=>'History of '.$model->name]);
+					},
 					'view' => function ($url, $model) {
 						$icon='<span class="fa fa-fw fa-eye"></span>';
-						return Html::a($icon,$url,['class'=>'btn btn-default btn-xs modal-heart','data-pjax'=>"0",'title'=>$model->name,'modal-size'=>'modal-lg']);
+						return Html::a($icon,$url,['class'=>'btn btn-default btn-xs modal-heart','data-pjax'=>"0",'title'=>'View '.$model->name,'modal-size'=>'modal-lg']);
 					},
 					'update' => function ($url, $model) {
 						$icon='<span class="fa fa-fw fa-pencil"></span>';
-						return Html::a($icon,$url,['class'=>'btn btn-default btn-xs modal-heart','data-pjax'=>"0",'title'=>$model->name,'modal-size'=>'modal-lg']);
+						return Html::a($icon,$url,['class'=>'btn btn-default btn-xs modal-heart','data-pjax'=>"0",'title'=>'Edit '.$model->name,'modal-size'=>'modal-lg']);
 					},
 				],
 			],

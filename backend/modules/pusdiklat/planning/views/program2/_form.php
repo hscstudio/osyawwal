@@ -37,6 +37,8 @@ use backend\models\Reference;
 	]);
 	?>
 
+	
+	
     <?= $form->field($model, 'name')->textInput(['maxlength' => 255]) ?>
     
     <?= $form->field($model, 'note')->textInput(['maxlength' => 255]) ?>	
@@ -96,8 +98,16 @@ use backend\models\Reference;
 	?>
 	
     <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-    </div>
+        <?= Html::submitButton('<i class="fa fa-fw fa-save"></i> '.($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update')), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
+		<?php if (!$model->isNewRecord){ ?>
+		<?= Html::submitButton('<i class="fa fa-fw fa-save"></i> '. Yii::t('app', 'Update as Revision'), ['class' => 'btn btn-warning', 'name' => 'create_revision',]) ?>
+		<?php } ?>
+	</div>
+	<div class="well">
+		Update as Revision artinya jika Anda menginginkan agar data lama tetap tersimpan dalam history. Fungsi ini sebaiknya Anda gunakan 
+		apabila perubahan yang Anda lakukan memang sangat mendasar atau signifikan. Adapun perubahan kecil seperti salah penulisan atau ejaan, maka 
+		cukup gunakan fungsi Update saja.
+	</div>
 
     <?php ActiveForm::end(); ?>
 	

@@ -92,9 +92,10 @@ $this->params['breadcrumbs'][] = $this->title;
 				'contentOptions'=>['class'=>'kv-sticky-column'],
 				'format'=>'raw',
 				'value' => function ($data){
-					$mp = \backend\models\ProgramSubject::find()
+					$mp = \backend\models\ProgramSubjectHistory::find()
 						->where([
 							'program_id' => $data->training->program_id,
+							'program_revision' => $data->training->program_revision,
 							'status' => 1,
 						])
 						->count();

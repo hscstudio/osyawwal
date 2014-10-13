@@ -5,6 +5,10 @@ namespace backend\modules\pusdiklat\general\controllers;
 use Yii;
 use backend\models\Room;
 use backend\modules\pusdiklat\general\models\RoomSearch;
+use backend\models\Activity;
+use backend\models\ActivityRoom;
+use backend\modules\pusdiklat\general\models\ActivityRoomSearch;
+use backend\models\Reference;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -31,14 +35,86 @@ class Room3Controller extends Controller
      * Lists all Room models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex($status=1,$satker_id=0)
     {
         $searchModel = new RoomSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+		if($satker_id==0)
+			$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+			
+		if($status=='all'){
+			if($satker_id=='all'){
+				$queryParams['RoomSearch']=[];
+			}
+			else{
+				$queryParams['RoomSearch']=[
+					'satker_id'=>$satker_id,
+				];
+			}
+		}
+		else{
+			if($satker_id=='all'){
+				$queryParams['RoomSearch']=[
+					'status'=>$status,
+				];
+			}
+			else{
+				$queryParams['RoomSearch']=[
+					'satker_id'=>$satker_id,
+					'status'=>$status,
+				];
+			}
+		}
+        $queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+        $dataProvider = $searchModel->search($queryParams);
 
+        $references = Reference::find()			
+			->where([
+				'type'=>'satker'
+			])
+			->all();;
+		$satkers = [];
+		foreach ($references as $reference){
+			$countWaiting = 0;								
+			$countWaiting1 = ActivityRoom::find()
+							->joinWith('activity')
+							->where([
+								'activity_room.status' => [0,1],
+								'room_id' => Room::find()
+									->where([
+										'satker_id' => $reference->id,
+										'status' => 1,
+									])
+									->column()
+							])
+							->andWhere('satker_id='.Yii::$app->user->identity->employee->satker_id)
+							->count();
+			$countWaiting2 = ActivityRoom::find()
+							->joinWith('activity')
+							->where([
+								'activity_room.status' => 1,
+								'room_id' => Room::find()
+									->where([
+										'satker_id' => $reference->id,
+										'status' => 1,
+									])
+									->column()
+							])
+							->andWhere('satker_id!='.Yii::$app->user->identity->employee->satker_id)
+							->count();
+			$countWaiting = $countWaiting1 + $countWaiting2;
+			
+			$waiting = '';
+			if ($countWaiting>0) $waiting = '['.$countWaiting.']';
+			$satkers[$reference->id] = $reference->name. ' '.$waiting;
+		}
+		$satkers['all']='-- All --';
+		
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+			'status' => $status,
+			'satker_id'=>$satker_id,
+			'satkers'=>$satkers,
         ]);
     }
 
@@ -147,4 +223,113 @@ class Room3Controller extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
+	
+	/**
+     * Lists all ActivityRoom models.
+     * @return mixed
+     */
+    public function actionActivityRoom($id,$status='all')
+    {
+        $model = Room::find()
+			->where([
+				'id'=>$id,	
+			])
+			->one();
+		
+		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+		$searchModel = new ActivityRoomSearch();
+        $queryParams = Yii::$app->request->getQueryParams();
+		$params = [];
+		if($status=='all') 
+			$params = ['room_id' => $id];
+		else 
+			$params = ['room_id' => $id,'status' => $status];
+		$queryParams['ActivityRoomSearch']=$params;
+		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+		$dataProvider = $searchModel->search($queryParams);
+		$dataProvider->getSort()->defaultOrder = ['start'=>SORT_DESC,'end'=>SORT_DESC];
+		
+		
+        return $this->render('activityRoom', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+			'model' => $model,
+			'status' => $status,
+        ]);
+    }
+	
+	/**
+     * Updates an existing ActivityRoom model.
+     * If update is successful, the browser will be redirected to the 'view' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionUpdateActivityRoom($id,$activity_id)
+    {
+		$room = Room::find()
+			->where([
+				'id'=>$id,				
+			])
+			->one();
+		$model = ActivityRoom::find()->where([
+			'activity_id'=>$activity_id,
+			'room_id'=>$id
+		])->one();        
+		//CHECKING ACTIVITY ID OF CURRENT SATKER
+		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+		$activity = Activity::findOne($model->activity_id);
+		if($activity->satker_id!=$satker_id and $room->satker_id!=$satker_id){
+			Yii::$app->session->setFlash('error', 'You have not privileges to update this activity!');
+			return $this->redirect(['activity-room','id'=>$id]);
+		}
+		
+		$data_status = [
+			'0'=>'Waiting',
+			'1'=>'Process',
+			'2'=>'Approved',
+			'3'=>'Rejected',
+		];
+		if($satker_id!=$room->satker_id){
+			$data_status = [
+				'0'=>'Waiting',
+				'1'=>'Process',
+			];
+		}		
+		if($satker_id!=$activity->satker_id){
+			$data_status = [
+				'1'=>'Process',
+				'2'=>'Approved',
+				'3'=>'Rejected',
+			];
+		}
+		
+        if ($model->load(Yii::$app->request->post())) {
+            if($model->save()){
+				Yii::$app->session->setFlash('success', 'Data saved');
+				if (Yii::$app->request->isAjax){
+
+				}
+				else
+					return $this->redirect(['activity-room','id'=>$id]);
+            } else {
+                // error in saving model
+				Yii::$app->session->setFlash('error', 'There are some errors');
+				if (Yii::$app->request->isAjax){		
+				
+				}
+				else
+					return $this->redirect(['activity-room','id'=>$id]);
+            }            
+        }
+		else{
+			//return $this->render(['update', 'id' => $model->id]);
+			return $this->render('updateActivityRoom', [
+                'model' => $model,
+				'id'=>$id,
+				'activity_id'=>$activity_id,
+				'data_status' => $data_status,
+            ]);
+		}
+    }
+	
 }

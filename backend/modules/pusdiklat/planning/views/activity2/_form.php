@@ -53,7 +53,22 @@ use kartik\checkbox\CheckboxX;
 					'allowClear' => true,
 				],
 			]); ?>
-
+			
+			
+			<?php
+			if (!$model->isNewRecord){ 
+				echo $form->field($training, 'program_revision')->widget(Select2::classname(), [
+					'data' => $program_revisions, 
+					'options' => [
+						'placeholder' => 'Choose revision ...',
+					],
+					'pluginOptions' => [
+						'allowClear' => true,
+					],
+				]);
+			}
+			?>
+			
 			<?= $form->field($model, 'name')->textInput(['maxlength' => 255]) ?>
 
 			<?= $form->field($model, 'description')->textarea(['rows' => 3]) ?>

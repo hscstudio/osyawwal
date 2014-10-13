@@ -116,4 +116,14 @@ class Room extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Activity::className(), ['id' => 'activity_id'])->viaTable('{activity_room}', ['room_id' => 'id']);
     }
+	
+	public function getSatker()
+    {
+        return $this->hasOne(Reference::className(), [
+			'id' => 'satker_id',			
+		])
+		->andWhere([
+			'type' => 'satker'
+		]);
+    }
 }

@@ -8,15 +8,15 @@ use Yii;
  * This is the model class for table "program_subject_history".
  *
  * @property integer $id
- * @property integer $program_subject_id
+ * @property integer $revision
  * @property integer $program_id
  * @property integer $program_revision
- * @property string $type
+ * @property integer $type
  * @property string $name
  * @property string $hours
  * @property integer $sort
  * @property integer $test
- * @property integer $stage
+ * @property string $stage
  * @property integer $status
  * @property string $created
  * @property integer $created_by
@@ -39,10 +39,11 @@ class ProgramSubjectHistory extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['program_subject_id', 'program_id', 'name', 'hours'], 'required'],
-            [['type','program_subject_id', 'program_id', 'program_revision', 'sort', 'test', 'status', 'created_by', 'modified_by'], 'integer'],
+            [['revision', 'program_id', 'type', 'name', 'hours'], 'required'],
+            [['revision', 'program_id', 'program_revision', 'type', 'sort', 'test', 'status', 'created_by', 'modified_by'], 'integer'],
             [['hours'], 'number'],
-            [['created', 'modified','stage'], 'safe'],
+            [['stage'], 'string'],
+            [['created', 'modified'], 'safe'],
             [['name'], 'string', 'max' => 255]
         ];
     }
@@ -54,14 +55,15 @@ class ProgramSubjectHistory extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('app', 'ID'),
-            'program_subject_id' => Yii::t('app', 'Program Subject ID'),
+            'revision' => Yii::t('app', 'Revision'),
             'program_id' => Yii::t('app', 'Program ID'),
             'program_revision' => Yii::t('app', 'Program Revision'),
+            'type' => Yii::t('app', 'Type'),
             'name' => Yii::t('app', 'Name'),
             'hours' => Yii::t('app', 'Hours'),
             'sort' => Yii::t('app', 'Sort'),
             'test' => Yii::t('app', 'Test'),
-			'stage' => Yii::t('app', 'Stage'),
+            'stage' => Yii::t('app', 'Stage'),
             'status' => Yii::t('app', 'Status'),
             'created' => Yii::t('app', 'Created'),
             'created_by' => Yii::t('app', 'Created By'),
@@ -69,4 +71,24 @@ class ProgramSubjectHistory extends \yii\db\ActiveRecord
             'modified_by' => Yii::t('app', 'Modified By'),
         ];
     }
+	
+	public static function getRevision($id){  
+      return self::find()->where(['id' => $id,])->max('revision');  
+    } 
+	
+	 /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProgram()
+    {
+        return $this->hasOne(Program::className(), ['id' => 'program_id']);
+    }
+	
+	/** 
+    * @return \yii\db\ActiveQuery 
+    */ 
+   public function getReference() 
+   { 
+       return $this->hasOne(Reference::className(), ['id' => 'type']); 
+   } 
 }

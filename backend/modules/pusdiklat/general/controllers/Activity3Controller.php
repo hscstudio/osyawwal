@@ -1,6 +1,6 @@
 <?php
 
-namespace backend\modules\pusdiklat\planning\controllers;
+namespace backend\modules\pusdiklat\general\controllers;
 
 use Yii;
 use backend\models\Activity;
@@ -21,7 +21,7 @@ use yii\data\ActiveDataProvider;
 /**
  * ActivityController implements the CRUD actions for Activity model.
  */
-class ActivityController extends Controller
+class Activity3Controller extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()

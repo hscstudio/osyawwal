@@ -164,7 +164,7 @@ AppAsset::register($this);
 
 			function lockScreen() {
 				stop = true;
-				window.location.href = '".\yii\helpers\Url::toRoute(['/site/lock-screen'])."?previous='+window.location.href;
+				window.location.href = '".\yii\helpers\Url::toRoute(['/site/lock-screen'])."?previous='+encodeURIComponent(window.location.href);
 			}
 			
 			function lockIdentity(){

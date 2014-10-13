@@ -16,6 +16,7 @@ use yii\filters\VerbFilter;
 use hscstudio\heart\helpers\Heart;
 use yii\helpers\ArrayHelper;
 use backend\models\ProgramSubject;
+use backend\models\ProgramSubjectHistory;
 use backend\models\TrainingSubjectTrainerRecommendation;
 use backend\modules\pusdiklat\planning\models\TrainingSubjectTrainerRecommendationSearch;
 use yii\data\ActiveDataProvider;
@@ -310,9 +311,10 @@ class Activity3Controller extends Controller
 		$renders = [];
 		$renders['model'] = $model;
 		
-		$query = ProgramSubject::find()
+		$query = ProgramSubjectHistory::find()
 			->where([
 				'program_id' => $model->training->program_id,
+				'program_revision' => $model->training->program_revision,
 				'status'=>1,
 			])
 			->orderBy(['status'=>SORT_DESC,'sort'=>SORT_ASC,]);			
@@ -338,7 +340,13 @@ class Activity3Controller extends Controller
     public function actionSubjectTrainer($id,$subject_id)
     {
 		$model = $this->findModel($id);
-		$program_subject = ProgramSubject::findOne($subject_id);
+		$program_subject = ProgramSubjectHistory::find()
+			->where([
+				'id' => $subject_id,
+				'program_id' =>  $model->training->program_id,
+				'program_revision' => $model->training->program_revision,
+			])
+			->one();
 		$renders = [];
 		$renders['model'] = $model;		
 		$renders['program_subject'] = $program_subject;	
@@ -403,7 +411,13 @@ class Activity3Controller extends Controller
     public function actionUpdateSubjectTrainer($id)
     {
         $model = $this->findModelSubjectTrainer($id);
-		$program_subject = ProgramSubject::findOne($model->program_subject_id);
+		$program_subject = ProgramSubjectHistory::find()
+			->where([
+				'id' => $subject_id,
+				'program_id' =>  $model->training->program_id,
+				'program_revision' => $model->training->program_revision,
+			])
+			->one();
         if ($model->load(Yii::$app->request->post())) {
             if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
@@ -448,7 +462,13 @@ class Activity3Controller extends Controller
     public function actionChooseTrainer($id,$subject_id)
     {
 		$model = $this->findModel($id);
-		$program_subject = ProgramSubject::findOne($subject_id);
+		$program_subject = ProgramSubjectHistory::find()
+			->where([
+				'id' => $subject_id,
+				'program_id' =>  $model->training->program_id,
+				'program_revision' => $model->training->program_revision,
+			])
+			->one();
 		$renders = [];
 		$renders['model'] = $model;		
 		$renders['program_subject'] = $program_subject;	
@@ -470,7 +490,13 @@ class Activity3Controller extends Controller
     public function actionSetTrainer($id,$subject_id,$trainer_id)
     {
         $model = $this->findModel($id);
-		$program_subject = ProgramSubject::findOne($subject_id);
+		$program_subject = ProgramSubjectHistory::find()
+			->where([
+				'id' => $subject_id,
+				'program_id' =>  $model->training->program_id,
+				'program_revision' => $model->training->program_revision,
+			])
+			->one();
 		$renders = [];
 		$renders['model'] = $model;		
 		$renders['program_subject'] = $program_subject;	

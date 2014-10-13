@@ -7,6 +7,7 @@ use backend\models\Activity;
 use backend\models\Training;
 use backend\models\TrainingStudentPlan;
 use backend\models\Program;
+use backend\models\ProgramHistory;
 use backend\models\Reference;
 use backend\models\ObjectPerson;
 use backend\modules\pusdiklat\planning\models\ActivitySearch;
@@ -128,6 +129,17 @@ class Activity2Controller extends Controller
 		$renders['model'] = $model;
 		$renders['training'] = $training;
 		
+		$program_revisions = yii\helpers\ArrayHelper::map(ProgramHistory::find()
+			->select(['revision'])
+			->where([
+				'id' => $training->program_id
+			])
+			->orderBy(['revision'=>'DESC'])
+			->groupBy(['revision'])
+			->asArray()
+			->all(), 'revision', 'revision');
+		$renders['program_revisions'] = $program_revisions;
+		
 		if (Yii::$app->request->post()){ 
 			$connection=Yii::$app->getDb();
 			$transaction = $connection->beginTransaction();	
@@ -138,7 +150,7 @@ class Activity2Controller extends Controller
 						Yii::$app->getSession()->setFlash('success', 'Activity data have saved.');
 						if($training->load(Yii::$app->request->post())){							
 							$training->activity_id= $model->id;
-							$training->program_revision = (int)\backend\models\ProgramHistory::getRevision($training->program_id);
+							/* $training->program_revision = (int)\backend\models\ProgramHistory::getRevision($training->program_id); */
 							
 							if($training->save()){								 
 								Yii::$app->getSession()->setFlash('success', 'Training & activity data have saved.');

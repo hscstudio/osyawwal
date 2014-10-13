@@ -4,7 +4,9 @@ namespace backend\modules\pusdiklat\planning\controllers;
 
 use Yii;
 use backend\models\Program;
+use backend\models\ProgramHistory;
 use backend\modules\pusdiklat\planning\models\ProgramSearch;
+use backend\modules\pusdiklat\planning\models\ProgramHistorySearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -13,6 +15,7 @@ use backend\models\ObjectFile;
 use backend\models\File;
 use backend\models\ObjectPerson;
 use backend\models\ProgramSubject;
+use backend\models\ProgramSubjectHistory;
 use hscstudio\heart\helpers\Heart;
 use yii\data\ActiveDataProvider;
 
@@ -49,7 +52,7 @@ class Program2Controller extends Controller
 		}
 		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
         $dataProvider = $searchModel->search($queryParams);
-
+		
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
@@ -74,8 +77,90 @@ class Program2Controller extends Controller
 			]);
     }
 
-    
+    /**
+     * Displays a single Program model.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionHistory($id)
+    {
+        $searchModel = new ProgramHistorySearch();
+		$queryParams = Yii::$app->request->getQueryParams();
+		$queryParams['ProgramHistorySearch']=[
+			'id'=>$id,
+		];
+		/* if($status!='all'){
+			$queryParams['ProgramHistorySearch']=[
+				'status'=>$status,
+			];
+		} */
+		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+        $dataProvider = $searchModel->search($queryParams);
+		$dataProvider->getSort()->defaultOrder = ['revision'=>SORT_DESC];
+		
+		return $this->render('history', [
+			'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+			'model' => $this->findModel($id),
+			'status' => '',
+		]);
+			
+    }
 
+	/**
+     * Displays a single Program model.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionViewHistory($id, $revision)
+    {
+        if (Yii::$app->request->isAjax)
+			return $this->renderAjax('view', [
+				'model' => $this->findModelHistory($id,$revision),
+			]);		
+		else
+			return $this->render('view', [
+				'model' => $this->findModelHistory($id,$revision),
+			]);
+    }
+	
+	public function actionSubjectHistory($id,$revision)
+    {
+        $model = $this->findModelHistory($id, $revision);
+		$renders = [];
+		$renders['model'] = $model;
+		
+		$query = ProgramSubjectHistory::find()
+		->where([
+			'program_id' => $model->id,
+			'program_revision' => $revision
+		])
+		->orderBy(['sort'=>SORT_ASC,]);	
+		$dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);	
+		//$dataProvider->getSort()->defaultOrder = ['type'=>SORT_ASC];		
+		$renders['dataProvider'] = $dataProvider;
+		
+		if (Yii::$app->request->isAjax)
+			return $this->renderAjax('subjectHistory', $renders);
+		else
+			return $this->render('subjectHistory', $renders);
+    } 
+	
+	protected function findModelHistory($id, $revision)
+    {
+		if (($model = ProgramHistory::find()
+				->where([
+					'id'=>$id,
+					'revision'=>$revision
+				])
+				->one()) !== null) {
+            return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
     /**
      * Updates an existing Program model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -91,9 +176,23 @@ class Program2Controller extends Controller
         if ($model->load(Yii::$app->request->post())) {
 			$model->satker = 'current';
 			/* $model->stage = implode(',',$model->stage); */
+			if (isset(Yii::$app->request->post()['create_revision'])){
+				$model->create_revision = true;
+			}
             if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
-				
+				if (isset(Yii::$app->request->post()['create_revision'])){
+					$program_subjects = ProgramSubject::find()
+						->where([
+							'program_id'=>$model->id,
+						])
+						->all();
+					foreach($program_subjects as $program_subject){
+						$program_subject->program_revision = (int)\backend\models\ProgramHistory::getRevision($model->id);
+						$program_subject->create_revision = true;
+						$program_subject->save();
+					}
+				}
 				return $this->redirect(['view', 'id' => $model->id]);
 			}
 			else{
@@ -349,13 +448,16 @@ class Program2Controller extends Controller
 		if(!isset($program_subject) or null==$program_subject){
 			$program_subject = new ProgramSubject([
 				'program_id' => $model->id,
+				'program_revision' => (int)\backend\models\ProgramHistory::getRevision($model->id),
 			]);			
 		}
 		$renders['program_subject'] = $program_subject;
 		
         if (Yii::$app->request->post()) {
-			$program_subject->load(Yii::$app->request->post());				
-			$program_subject->stage = implode('|',$program_subject->stage);
+			$program_subject->load(Yii::$app->request->post());	
+			if(!empty($program_subject->stage)){
+				$program_subject->stage = implode('|',$program_subject->stage);
+			}
 			if($program_subject->save()){
 				Yii::$app->getSession()->setFlash('success', 'Subject have saved.');					
 			}
@@ -409,4 +511,35 @@ class Program2Controller extends Controller
 		else Yii::$app->getSession()->setFlash('error', 'Status is not updates.');
         return $this->redirect(['subject','id'=>$model->id]);
     }
+	
+	public function actionDocumentHistory($id,$status='all')
+    {
+        $model = $this->findModel($id);
+		$renders = [];
+		$renders['model'] = $model;
+		$renders['status'] = $status;
+		
+		if($status=='all'){
+			$query = ObjectFile::find()
+				->joinWith('file')
+				->where([
+					'object'=>'program',
+					'object_id' => $model->id,
+					'type' => ['kap','gbpp','module'],
+				])
+				->orderBy(['status'=>SORT_DESC,'file_id'=>SORT_DESC,]);			
+        }
+		
+		$dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);	
+		$dataProvider->getSort()->defaultOrder = ['type'=>SORT_ASC];		
+		$renders['dataProvider'] = $dataProvider;		
+        
+		
+		if (Yii::$app->request->isAjax)
+			return $this->renderAjax('documentHistory', $renders);
+		else
+			return $this->render('documentHistory', $renders);
+    } 
 }

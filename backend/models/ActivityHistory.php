@@ -38,12 +38,8 @@ class ActivityHistory extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id', 'revision', 'satker_id', 'name', 'start', 'end', 'location'], 'required'],
-            [['id', 'revision', 'satker_id', 'hostel', 'status', 'created_by', 'modified_by'], 'integer'],
-            [['description'], 'string'],
-            [['start', 'end', 'created', 'modified'], 'safe'],
-            [['name', 'location'], 'string', 'max' => 255],
-            [['name'], 'unique']
+            [['description','name', 'location','start', 'end', 'created', 'modified','id', 'revision', 'satker_id', 'hostel', 'status', 'created_by', 'modified_by'], 'safe'],
+
         ];
     }
 
@@ -73,4 +69,20 @@ class ActivityHistory extends \yii\db\ActiveRecord
 	public static function getRevision($id){  
       return self::find()->where(['id' => $id,])->max('revision');  
     } 
+	
+	/**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMeeting()
+    {
+        return $this->hasOne(Meeting::className(), ['activity_id' => 'id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTraining()
+    {
+        return $this->hasOne(Training::className(), ['activity_id' => 'id']);
+    }
 }
