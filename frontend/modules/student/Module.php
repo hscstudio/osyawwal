@@ -25,6 +25,9 @@ class Module extends \yii\base\Module
 				['icon'=>'fa fa-fw fa-key','label' => 'Password', 'url' => ['/'.$this->uniqueId.'/student/password'],'path'=>[
 					'/student/password',
 				]],
+				['icon'=>'fa fa-fw fa-key','label' => 'Training', 'url' => ['/'.$this->uniqueId.'/activity/index'],'path'=>[
+					'/activity',
+				]],
 			]],
 		];
 	}

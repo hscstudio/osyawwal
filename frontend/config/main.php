@@ -25,6 +25,9 @@ return [
 		'student' => [
             'class' => 'frontend\modules\student\Module',
         ],
+		'trainingclass' => [
+            'class' => 'frontend\modules\trainingclass\Module',
+        ],
 	],
     'components' => [
         'user' => [

@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\grid\GridView as Gridview2;
 use kartik\grid\GridView;
 use yii\helpers\Url;
+use kartik\widgets\Select2;
 
 /* @var $this yii\web\View */
 /* @var $searchModel frontend\modules\student\models\ActivitySearch */
@@ -12,7 +13,7 @@ use yii\helpers\Url;
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
-$this->title = Yii::t('app', 'Activities');
+$this->title = Yii::t('app', 'Training');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="activity-index">
@@ -58,32 +59,80 @@ $this->params['breadcrumbs'][] = $this->title;
 					'contentOptions'=>['class'=>'kv-sticky-column'],					
 				],
 				
-				[
+				/*[
 					'attribute' => 'location',
 					'vAlign'=>'middle',
 					'hAlign'=>'center',
 					'headerOptions'=>['class'=>'kv-sticky-column'],
 					'contentOptions'=>['class'=>'kv-sticky-column'],					
-				],
+				],*/
 				
-				[
+				/*[
 				 	'class' => 'kartik\grid\ActionColumn',
 					'template' => '{update}',					
 					'buttons' => [
 						'update' => function ($url, $model) {
 									$icon='<span class="glyphicon glyphicon-pencil"></span>';
-									return ($model->status!=2 AND $model->status!=1)?'':Html::a($icon,\yii\helpers\Url::to('../../eregistrasi-training/default?training_id='.\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))),[
+									return ($model->status!=2 AND $model->status!=1)?'':Html::a($icon,\yii\helpers\Url::to('dashboard.aspx?training_id='.\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))),[
 										'data-pjax'=>"0",
 									]);
 								},
 					],	
-				],
+				],*/
+				[
+				'class' => 'kartik\grid\ActionColumn',
+				'template' => '{dashboard}',
+				'buttons' => [
+					'dashboard' => function ($url, $model) {
+								$icon='<span class="fa fa-fw fa-dashboard"></span>';
+								return ($model->status!=2 AND $model->status!=1)?'':Html::a($icon,\yii\helpers\Url::to('dashboard.aspx?training_id='.\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))),[
+									'class'=>'btn btn-default btn-xs',
+									'data-pjax'=>'0',
+								]);
+							},
+				],		
+			],
 
             //['class' => 'kartik\grid\ActionColumn'],
         ],
 		'panel' => [
 			'heading'=>'<h3 class="panel-title"><i class="fa fa-fw fa-globe"></i> '.Html::encode($this->title).'</h3>',
-			'before'=>Html::a('<i class="fa fa-fw fa-plus"></i> Create ', ['create'], ['class' => 'btn btn-success']),
+			'before'=>'<div class="pull-right" style="margin-right:5px;">'.
+				Select2::widget([
+					'name' => 'year', 
+					'data' => $year_training,
+					'value' => $year,
+					'options' => [
+						'placeholder' => 'Year ...', 
+						'class'=>'form-control', 
+						'onchange'=>'
+							$.pjax.reload({
+								url: "'.\yii\helpers\Url::to(['index']).'?status='.$status.'&year="+$(this).val(), 
+								container: "#pjax-gridview", 
+								timeout: 1,
+							});
+						',	
+					],
+				]).
+				'</div>'.
+				'<div class="pull-right" style="margin-right:5px;">'.
+				Select2::widget([
+					'name' => 'status', 
+					'data' => $satker,
+					'value' => $satker_id,
+					'options' => [
+						'placeholder' => 'Penyelenggara ...', 
+						'class'=>'form-control', 
+						'onchange'=>'
+							$.pjax.reload({
+								url: "'.\yii\helpers\Url::to(['index']).'?year='.$year.'&satker="+$(this).val(), 
+								container: "#pjax-gridview", 
+								timeout: 1000,
+							});
+						',	
+					],
+				]).
+				'</div>',
 			'after'=>Html::a('<i class="fa fa-fw fa-repeat"></i> Reset Grid', Url::to(''), ['class' => 'btn btn-info']),
 			'showFooter'=>false
 		],
