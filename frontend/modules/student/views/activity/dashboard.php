@@ -31,7 +31,7 @@ $this->params['breadcrumbs'][] = $this->title;
 				'type'=>'small', // ,small, solid, tiles
 				'bgColor'=>'red', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
 				'bodyOptions' => [],
-				'icon' => 'glyphicon glyphicon-eye-open',
+				'icon' => 'fa fa-fw fa-cutlery',
 				'link' => ['property','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
 				'footerOptions' => [
 					'class' => 'dashboard-hide',
@@ -81,6 +81,46 @@ $this->params['breadcrumbs'][] = $this->title;
 			?>
 			<h3>Student</h3>
 			<p>Student of Training</p>
+			<?php
+			Box::end();
+			?>
+			</div>
+            <div class="col-md-3">
+			<?php
+			Box::begin([
+				'type'=>'small', // ,small, solid, tiles
+				'bgColor'=>'blue', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bodyOptions' => [],
+				'icon' => 'fa fa-fw fa-graduation-cap',
+				'link' => ['property','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
+				'footerOptions' => [
+					'class' => 'dashboard-hide',
+				],
+				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
+			]);
+			?>
+			<h3>Trainer</h3>
+			<p>Evaluation Trainer of Training</p>
+			<?php
+			Box::end();
+			?>
+			</div>
+             <div class="col-md-3">
+			<?php
+			Box::begin([
+				'type'=>'small', // ,small, solid, tiles
+				'bgColor'=>'purple', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
+				'bodyOptions' => [],
+				'icon' => 'fa fa-fw fa-building-o',
+				'link' => ['property','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
+				'footerOptions' => [
+					'class' => 'dashboard-hide',
+				],
+				'footer' => 'More info <i class="fa fa-arrow-circle-right"></i>',
+			]);
+			?>
+			<h3>Execution</h3>
+			<p>Evaluation Execution of Training</p>
 			<?php
 			Box::end();
 			?>

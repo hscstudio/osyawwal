@@ -75,6 +75,12 @@ return [
 		'sekretariat-hrd' => [
 			'class' => 'backend\modules\sekretariat\hrd\Module',
 		], 
+		'sekretariat-general' => [
+            'class' => 'backend\modules\sekretariat\general\Module',
+        ],
+		'sekretariat-organisation' => [
+            'class' => 'backend\modules\sekretariat\organisation\Module',
+        ],
 		/* START SEKRETARIAT */
 		/* START PUSDIKLAT */
 		'pusdiklat-general' => [

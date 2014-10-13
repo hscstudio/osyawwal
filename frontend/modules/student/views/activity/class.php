@@ -26,7 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
 		'bgColor'=>'yellow', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
 		'bodyOptions' => [],
 		'icon' => 'glyphicon glyphicon-home',
-		'link' => ['dashboard','id'=>$model->id],
+		'link' => ['dashboard','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
 		'footerOptions' => [
 			'class' => 'dashboard-hide',
 		],
@@ -155,77 +155,20 @@ $this->params['breadcrumbs'][] = $this->title;
 									'data-confirm'=>'Process!'
 								]);
 					}
-					
-					/* $subjectCount = \backend\models\ProgramSubject::find()
-						->where([
-							'program_id' => $data->training->program_id,
-							DIPIKIRIN NANTI.. PUYENG AKU 'revision'=> $data->training->tb_program_revision, 
-							'status'=>1,
-						])
-						->count();
-					
-					if($subjectCount>$classSubjectCount){
-						return Html::a($classSubjectCount.' <i class="fa fa-fw fa-plus-circle"></i>', 
-								[
-									'create-class-subject',
-									'id'=>$data->training_id,
-									'class_id'=>$data->id,
-								], 
-								[
-									'title'=>$subjectCount,
-									'class' => 'label label-info',
-									'data-pjax'=>0,
-									'data-toggle'=>'tooltip',
-									'data-confirm'=>'Mata pelajaran akan digenerate, menyesuaikan dengan program diklatnya!'
-								]);
-					}
-					else{
-						return Html::a($classSubjectCount, 
-								[
-									'class-subject',
-									'id'=>$data->training_id,
-									'class_id'=>$data->id,
-								], 
-								[
-									'title'=>$subjectCount,
-									'class' => 'label label-info',
-									'data-pjax'=>0,
-									'data-toggle'=>'tooltip',
-								]);
-					} */
 				}
 			],
             [
 				'class' => 'kartik\grid\ActionColumn',
 				'template' => '{view}',
-				/*'buttons' => [
-					'delete' => function ($url, $model) {
-								$icon='<span class="fa fa-fw fa-trash"></span>';
-								return Html::a($icon,
-									['delete-class','id'=>$model->training_id,'class_id'=>$model->id],
-									[
-										'class'=>'btn btn-default btn-xs',
-										'data-pjax'=>'0',
-										'data-confirm'=>'Areyou sure you want delete this item!',
-										'data-method'=>'post',
-									]
-								);
-							},
-					 'dashboard' => function ($url, $model) {
-								$icon='<span class="fa fa-fw fa-dashboard"></span>';
-								return ($model->status!=2 AND $model->status!=1)?'':Html::a($icon,$url,[
-									'class'=>'btn btn-default btn-xs',
-									'data-pjax'=>'0',
-								]);
-							},
-					'update' => function ($url, $model) {
-								$icon='<span class="fa fa-fw fa-pencil"></span>';
+				'buttons' => [
+					'view' => function ($url, $model) {
+								$icon='<span class="fa fa-fw fa-newspaper-o"></span>';
 								return ($model->status!=2 AND $model->status!=1)?'':Html::a($icon,$url,[
 									'class'=>'btn btn-default btn-xs',
 									'data-pjax'=>'0',
 								]);
 							}, 
-				],	*/
+				],
 			],
         ],
 		'panel' => [

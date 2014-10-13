@@ -26,7 +26,7 @@ $this->params['breadcrumbs'][] = $this->title;
 		'bgColor'=>'green', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
 		'bodyOptions' => [],
 		'icon' => 'fa fa-user-md',
-		'link' => ['dashboard','id'=>$model->id],
+		'link' => ['dashboard','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
 		'footerOptions' => [
 			'class' => 'dashboard-hide',
 		],
@@ -168,36 +168,4 @@ $this->params['breadcrumbs'][] = $this->title;
 		'hover'=>true,
     ]); ?>
 	<?= \hscstudio\heart\widgets\Modal::widget() ?>
-</div>
-
-<div class="panel panel-default">
-	<div class="panel-heading">
-	<i class="glyphicon glyphicon-upload"></i> Batch Upload
-	</div>
-    <div class="panel-body">
-		<div class="row clearfix">
-			<div class="col-md-4">
-			Upload Student
-			</div>
-			<div class="col-md-8">
-			<?php
-			echo Html::beginTag('div', ['class'=>'col-md-8']);
-				$form = \yii\bootstrap\ActiveForm::begin([
-					'options'=>['enctype'=>'multipart/form-data'],
-					'action'=>['import-student','id'=>$model->id], 
-				]);
-				echo \kartik\widgets\FileInput::widget([
-					'name' => 'importFile', 
-					//'options' => ['multiple' => true], 
-					'pluginOptions' => [
-						'previewFileType' => 'any',
-						'uploadLabel'=>"Import Excel",
-					]
-				]);
-				\yii\bootstrap\ActiveForm::end();
-			echo Html::endTag('div');
-			?>
-			</div>
-		</div>
-	</div>
 </div>

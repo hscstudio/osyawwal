@@ -27,7 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 		'bgColor'=>'red', // , aqua, green, yellow, red, blue, purple, teal, maroon, navy, light-blue
 		'bodyOptions' => [],
 		'icon' => 'glyphicon glyphicon-eye-open',
-		'link' => ['dashboard','id'=>$model->id],
+		'link' => ['dashboard','training_id'=>\hscstudio\heart\helpers\Kalkun::AsciiToHex(base64_encode($model->id))],
 		'footer' => '<i class="fa fa-arrow-circle-left"></i> Back',
 	]);
 	?>
