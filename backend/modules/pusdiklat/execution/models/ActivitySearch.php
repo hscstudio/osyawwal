@@ -21,6 +21,7 @@ class ActivitySearch extends Activity
         return [
             [['id', 'satker_id', 'hostel', 'status', 'created_by', 'modified_by'], 'integer'],
             [['name', 'description', 'start', 'end', 'location', 'created', 'modified'], 'safe'],
+			[['year'], 'safe'],
         ];
     }
 
@@ -43,13 +44,9 @@ class ActivitySearch extends Activity
     public function search($params)
     {
 		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
-		if(empty($this->year)) $this->year=date('Y');
 		
         $query = Activity::find()
-			->where([
-				'satker_id' => $satker_id,
-				'YEAR(start)' => $this->year,
-			]);
+			->joinWith('training',false,'RIGHT JOIN');
 			
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -70,6 +67,8 @@ class ActivitySearch extends Activity
             'created_by' => $this->created_by,
             'modified' => $this->modified,
             'modified_by' => $this->modified_by,
+			'satker_id' => $satker_id,
+			'YEAR(start)' => $this->year,
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])

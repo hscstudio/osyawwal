@@ -30,7 +30,36 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 		<h1 class="panel-title"><?= Html::encode($this->title) ?></h1>
 	</div>
 	<div class="panel-body">
-		<?php $form = ActiveForm::begin(); ?>
+		<?php 
+		$options=[];
+		if (Yii::$app->request->isAjax){		
+			$options['enableAjaxValidation']=false;
+			$options['enableClientValidation']=true;
+			/* $options['beforeSubmit']="function(form) {
+				if($(form).find('.has-error').length) {
+					return false;
+				}					
+				$.ajax({
+					url: form.attr('action'),
+					type: 'post',
+					data: form.serialize(),
+					success: function(data) {
+						$.pjax.reload({
+							url: '".\yii\helpers\Url::to(['calendar-activity-room','id'=>$model->room->id])."', 
+							container: '#pjax-gridview', 
+							timeout: 3000,
+						});
+						$.growl(data, {	type: 'success'	});
+						$('#modal-heart').modal('hide');
+					}
+				});					
+				return false;
+			}"; */
+		}
+		
+		$form = ActiveForm::begin([
+			'id'=>'formUpdate',
+		]); ?>
 		<?= $form->errorSummary($model) ?> <!-- ADDED HERE -->
 		
 		<?php
@@ -77,11 +106,39 @@ $this->params['breadcrumbs'][] = Yii::t('app', 'Update');
 		<div class="form-group">
 			<?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
 		</div>
-
-		<?php ActiveForm::end(); ?>
+		
+		<?php 
+		if(!$model->isNewRecord){
+			echo '<input type="hidden" name="redirect" value="calendar">';
+		}
+		ActiveForm::end(); 
+		?>
 		
 		<?php
 		$this->registerCss('label{display:block !important;}'); 
+		$js = "
+		$('form#formUpdate').on('beforeSubmit', function(e, \$form) {
+			var form = $(this)
+		   $.ajax({
+				url: form.attr('action'),
+				type: 'post',
+				data: form.serialize(),
+				success: function(data) {
+					$.pjax.reload({
+						url: '".\yii\helpers\Url::to(['calendar-activity-room','id'=>$model->room_id])."', 
+						container: '#pjax-calendar', 
+						timeout: 3000,
+					});
+					$.growl(data, {	type: 'success'	});
+					$('#modal-heart').modal('hide');
+				}				
+			});	
+			return false;
+		}).on('submit', function(e){
+			e.preventDefault();
+		});
+		";
+		$this->registerJs($js);
 		?>
 	</div>
 </div>

@@ -141,8 +141,8 @@ $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 				]).
 				'</div>',
 			'after'=>
-			Html::a('<i class="fa fa-fw fa-calendar"></i> Calendar', ['calendar','room_id'=>$model->id], ['class' => 'btn btn-warning','data-pjax'=>0]).' '.
-			Html::a('<i class="fa fa-fw fa-repeat"></i> Reset Grid', ['index','room_id'=>$model->id], ['class' => 'btn btn-info']),
+			Html::a('<i class="fa fa-fw fa-calendar"></i> Calendar', ['calendar-activity-room','id'=>$model->id,'status'=>$status], ['class' => 'btn btn-warning','data-pjax'=>0]).' '.
+			Html::a('<i class="fa fa-fw fa-repeat"></i> Reset Grid', ['activity-room','id'=>$model->id], ['class' => 'btn btn-info']),
 			'showFooter'=>false
 		],
 		'responsive'=>true,

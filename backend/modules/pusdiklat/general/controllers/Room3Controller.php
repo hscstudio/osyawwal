@@ -305,31 +305,144 @@ class Room3Controller extends Controller
 		
         if ($model->load(Yii::$app->request->post())) {
             if($model->save()){
-				Yii::$app->session->setFlash('success', 'Data saved');
+				Yii::$app->session->setFlash('success', 'Data saved');				
+				
 				if (Yii::$app->request->isAjax){
 
 				}
-				else
-					return $this->redirect(['activity-room','id'=>$id]);
+				else{					
+					if(Yii::$app->request->post()['redirect']=='calendar'){
+						return $this->redirect(['calendar-activity-room','id'=>$id]);
+					}
+					else{
+						return $this->redirect(['activity-room','id'=>$id]);
+					}
+				}
             } else {
                 // error in saving model
 				Yii::$app->session->setFlash('error', 'There are some errors');
+				if(Yii::$app->request->post()['redirect']=='calendar'){
+					return $this->redirect(['calendar-activity-room','id'=>$id]);
+				}
 				if (Yii::$app->request->isAjax){		
 				
 				}
-				else
-					return $this->redirect(['activity-room','id'=>$id]);
+				else{					
+					if(Yii::$app->request->post()['redirect']=='calendar'){
+						return $this->redirect(['calendar-activity-room','id'=>$id]);
+					}
+					else{
+						return $this->redirect(['activity-room','id'=>$id]);
+					}
+				}
             }            
         }
 		else{
 			//return $this->render(['update', 'id' => $model->id]);
-			return $this->render('updateActivityRoom', [
-                'model' => $model,
-				'id'=>$id,
-				'activity_id'=>$activity_id,
-				'data_status' => $data_status,
-            ]);
+			if (Yii::$app->request->isAjax){	
+				return $this->renderAjax('updateActivityRoom', [
+					'model' => $model,
+					'id'=>$id,
+					'activity_id'=>$activity_id,
+					'data_status' => $data_status,
+				]);
+			}
+			else{
+				return $this->render('updateActivityRoom', [
+					'model' => $model,
+					'id'=>$id,
+					'activity_id'=>$activity_id,
+					'data_status' => $data_status,
+				]);
+			}
 		}
+    }
+	
+	/**
+     * Lists all ActivityRoom models.
+     * @return mixed
+     */
+    public function actionCalendarActivityRoom($id,$status='all')
+    {
+        /*
+		$ref_satker_id = (int)Yii::$app->user->identity->employee->ref_satker_id;
+		$searchModel = new ActivityRoomSearch();
+        $queryParams = Yii::$app->request->getQueryParams();
+		$params = [];
+		if($status=='all') $params = ['tb_room_id' => $tb_room_id,'ref_satker_id' => $ref_satker_id,];
+		else $params = ['tb_room_id' => $tb_room_id,'ref_satker_id' => $ref_satker_id,'status' => $status,];
+		$queryParams['ActivityRoomSearch']=$params;
+		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
+		$dataProvider = $searchModel->search($queryParams);
+		$dataProvider->getSort()->defaultOrder = ['startTime'=>SORT_DESC,'finishTime'=>SORT_DESC];*/
+		
+		$room = Room::findOne($id);
+        return $this->render('calendar', [
+			'room' => $room,
+			'status' => $status,
+        ]);
+    }
+	
+	public function actionEventActivityRoom($id,$status='all')
+	{       
+		$start = Yii::$app->request->get('start');
+		$end = Yii::$app->request->get('end');
+		$items = array();
+		if($status=='all'){
+			$model= ActivityRoom::find()
+					 ->where(' (`start` >= :start or `end` <= :end) and room_id=:room_id',
+						[':start' => $start,':end' => $end,':room_id' => $id])
+					 ->all();  
+		}
+		else{
+			$model= \backend\models\ActivityRoom::find()
+					 ->where(' (`start` >= :start or `end`<= :end) and room_id=:room_id and status=:status',
+						[':start' => $start,':end' => $end,':room_id' => $id,':status' => $status])
+					 ->all();   
+		}
+		$title = 'Untitle';
+		/* $start = date('Y-m-d');
+		$end = date('Y-m-d'); */
+		$color = '';
+		$link = '';
+		foreach ($model as $value) {
+			$activity = Activity::find()
+				 ->where('id >= :id ',[':id' => $value->activity_id])
+				 ->one();			
+			
+			$title = $activity->name;
+			if($activity->satker_id!=Yii::$app->user->identity->employee->satker_id){
+				$title.=' ['.$activity->satker->value.'] ';
+			}
+			$description = $title.' | '.\hscstudio\heart\helpers\Heart::twodate($value->start,$value->end,1);
+			$start=date('Y-m-d H:i',strtotime($value->start));
+			$end=date('Y-m-d H:i', strtotime('+1 minute', strtotime($value->end)));
+			if($value->status==0) $color='#f0ad4e';
+			else if($value->status==1) $color='#5bc0de';
+			else if($value->status==2) $color='#5cb85c';
+			else if($value->status==3) $color='#d9534f';
+			$link = \yii\helpers\Url::to(['update-activity-room','id'=>$value->room_id,'activity_id'=>$activity->id]);			
+				/* element.attr("title", event.description);
+				element.attr("class", element.attr("class")+" "+event.class);
+				element.attr("modal-size", event.modalSize);
+				element.attr("modal-title", event.modalTitle);
+				element.attr("data-toggle", event.dataToggle); */
+			$items[]=[
+				'title'=> $title,
+				'start'=> $start,
+				'end'=> $end,
+				'color'=> $color,
+				//'allDay'=>true,
+				'url'=>$link,
+				'description'=>$description,
+				'class'=>'modal-heart',
+				'modalSize'=>'modal-lg',
+				'modalTitle'=>'Update Activity Room',
+				'dataToggle'=>'tooltip',
+				
+			];
+		}
+		echo \yii\helpers\Json::encode($items);
     }
 	
 }

@@ -22,7 +22,7 @@ use yii\data\ActiveDataProvider;
 /**
  * ActivityController implements the CRUD actions for Activity model.
  */
-class Activity3Controller extends Controller
+class MeetingActivity3Controller extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()

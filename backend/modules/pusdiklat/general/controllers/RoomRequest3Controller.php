@@ -9,6 +9,7 @@ use backend\models\ActivityRoom;
 use backend\models\Room;
 use backend\models\Meeting;
 use backend\models\Reference;
+use backend\models\Organisation;
 use backend\models\ObjectPerson;
 use backend\modules\pusdiklat\general\models\MeetingActivitySearch as ActivitySearch;;
 use backend\modules\pusdiklat\general\models\RoomSearch;
@@ -22,7 +23,7 @@ use yii\data\ActiveDataProvider;
 /**
  * ActivityController implements the CRUD actions for Activity model.
  */
-class Activity3Controller extends Controller
+class RoomRequest3Controller extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()
@@ -41,41 +42,27 @@ class Activity3Controller extends Controller
      * Lists all Activity models.
      * @return mixed
      */
-    public function actionIndex($year='',$status='all')
+    public function actionIndex($year='',$status='all', $organisation_id='387')
     {
 		if(empty($year)) $year=date('Y');
 		$searchModel = new ActivitySearch();
-		$queryParams = Yii::$app->request->getQueryParams();
-		$organisation_id = 391;
-		if($status=='all'){
-			if($year=='all'){
-				$queryParams['ActivitySearch']=[
-					'organisation_id' => $organisation_id
-				];
-			}
-			else{
-				$queryParams['ActivitySearch']=[
-					'year' => $year,
-					'organisation_id' => $organisation_id
-				];
-			}
-		}
-		else{
-			if($year=='all'){
-				$queryParams['ActivitySearch']=[
-					'status' => $status,
-					'organisation_id' => $organisation_id
-				];
-			}
-			else{
-				$queryParams['ActivitySearch']=[
-					'year' => $year,
-					'status' => $status,
-					'organisation_id' => $organisation_id
-				];
-			}
+		$queryParams = Yii::$app->request->getQueryParams();		
+		if($status!='all'){
+			$queryParams['ActivitySearch']['status'] = $status;
 		}
 		
+		$org = Organisation::findOne($organisation_id);
+		if($org->KD_ESELON==2){
+		
+		}
+		else {
+			$queryParams['ActivitySearch']['organisation_id'] = $organisation_id;
+		}
+		
+		if($year!='all'){
+			$queryParams['ActivitySearch']['year'] = $year;
+		}
+				
 		$queryParams=yii\helpers\ArrayHelper::merge(Yii::$app->request->getQueryParams(),$queryParams);
 		$dataProvider = $searchModel->search($queryParams);
 		$dataProvider->getSort()->defaultOrder = ['start'=>SORT_ASC,'end'=>SORT_ASC];
@@ -90,12 +77,24 @@ class Activity3Controller extends Controller
 			->all(), 'year', 'year');
 		$year_meeting['all']='All'	;
 		
+		// GET ALL ORGANISATION
+		$organisation['all']='- All -';
+		$organisations = yii\helpers\ArrayHelper::map(Organisation::find()
+			->where([
+				'KD_UNIT_ES2'=>'13',
+				'KD_ESELON'=>[2,4],
+			])
+			->asArray()
+			->all(), 'ID', 'NM_UNIT_ORG');
+			
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
 			'year' => $year,
 			'status' => $status,
 			'year_meeting' => $year_meeting,
+			'organisations' => $organisations,
+			'organisation_id' => $organisation_id
         ]);
     }
 	
@@ -126,143 +125,6 @@ class Activity3Controller extends Controller
         ]);
     }
 
-    /**
-     * Creates a new Activity model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new Activity();		
-		$meeting = new Meeting([
-			'organisation_id'=>391
-		]);
-		$renders=[];
-		$renders['model'] = $model;
-		$renders['meeting'] = $meeting;
-        if (Yii::$app->request->post()){ 
-			$connection=Yii::$app->getDb();
-			$transaction = $connection->beginTransaction();	
-			try{
-				if($model->load(Yii::$app->request->post())){					
-					$model->satker = 'current';
-					$model->location = implode('|',$model->location);
-					$model->status =0;									
-					if($model->save()) {
-						Yii::$app->getSession()->setFlash('success', 'Activity data have saved.');
-						if($meeting->load(Yii::$app->request->post())){							
-							$meeting->activity_id= $model->id;	
-							$meeting->organisation_id = 391;							
-							if($meeting->save()){								 
-								Yii::$app->getSession()->setFlash('success', 'Meeting & activity data have saved.');
-								$transaction->commit();
-								return $this->redirect(['view', 'id' => $model->id]);
-							}
-						}						
-					}
-					else{
-						Yii::$app->getSession()->setFlash('error', 'Data is NOT saved.');
-					}				
-				}
-			}
-			catch (Exception $e) {
-				Yii::$app->getSession()->setFlash('error', 'Roolback transaction. Data is not saved');
-			}
-        } 
-		
-		return $this->render('create', $renders);
-    }
-
-    /**
-     * Updates an existing Activity model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-		$model->start = date('Y-m-d',strtotime($model->start));
-		$model->end = date('Y-m-d',strtotime($model->end));
-		$meeting = Meeting::findOne([
-			'activity_id'=>$model->id,
-			'organisation_id'=>391
-		]);
-		$renders=[];
-		$renders['model'] = $model;
-		$renders['meeting'] = $meeting;
-		
-		if (Yii::$app->request->post()){ 
-			$connection=Yii::$app->getDb();
-			$transaction = $connection->beginTransaction();	
-			try{
-				if($model->load(Yii::$app->request->post())){
-					if (isset(Yii::$app->request->post()['create_revision'])){
-						$model->create_revision = true;
-					}
-					$model->satker = 'current';
-					$model->location = implode('|',$model->location);									
-					if($model->save()) {
-						Yii::$app->getSession()->setFlash('success', 'Activity data have saved.');
-						if($meeting->load(Yii::$app->request->post())){							
-							$meeting->activity_id= $model->id;
-							if (isset(Yii::$app->request->post()['create_revision'])){
-								$meeting->create_revision = true;
-								
-							}
-							/* $meeting->program_revision = (int)\backend\models\ProgramHistory::getRevision($meeting->program_id); */
-							// GENERATE TRAINING NUMBER
-							if(Yii::$app->request->post('generate_number')){
-								$year = date('Y',strtotime($model->start));
-								$program = Program::find()->where(['id'=>$meeting->program_id])->currentSatker()->active()->one();
-								$program_owner = sprintf("%02s", $program->satker->sort);
-								$activity_owner = sprintf("%02s", $model->satker->sort);							
-								if($program_owner==$activity_owner) $activity_owner='00';
-								$program_number = $program->number;
-								$meeting_of_program_this_year = Activity::find()
-									->where('start<=:start and YEAR(start)=:this_year',[':start'=>$model->start,':this_year'=>$year])			
-									->currentSatker()
-									->active()
-									->count()+1;
-								$meeting->number = $year.'-'.$program_owner.'-'.$activity_owner.'-'.$program_number.'.'.$meeting_of_program_this_year;
-							}
-							
-							if($meeting->save()){								 
-								Yii::$app->getSession()->setFlash('success', 'Meeting & activity data have saved.');
-								$transaction->commit();
-								return $this->redirect(['view', 'id' => $model->id]);
-							}
-						}						
-					}
-					else{
-						Yii::$app->getSession()->setFlash('error', 'Data is NOT saved.');
-					}				
-				}
-			}
-			catch (Exception $e) {
-				Yii::$app->getSession()->setFlash('error', 'Roolback transaction. Data is not saved');
-			}
-        } 
-		
-		return $this->render('update', $renders);
-    }
-
-    /**
-     * Deletes an existing Activity model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionDelete($id)
-    {
-		if($this->findModel($id)->delete()) {
-			Yii::$app->getSession()->setFlash('success', 'Data have deleted.');
-		}
-		else{
-			Yii::$app->getSession()->setFlash('error', 'Data is not deleted.');
-		}
-        return $this->redirect(['index']);
-    }
 
     /**
      * Finds the Activity model based on its primary key value.
@@ -374,7 +236,7 @@ class Activity3Controller extends Controller
         $dataProvider = $searchModel->search($queryParams);
 
 		// GET ALL TRAINING YEAR
-		$satkers['all']='- All -';
+		$satkers['all']='All';
 		$satkers = yii\helpers\ArrayHelper::map(\backend\models\Reference::find()
 			->where(['type'=>'satker'])
 			//->orderBy(['eselon'=>'ASC',])
@@ -404,4 +266,56 @@ class Activity3Controller extends Controller
 		}
     }
 	
+	/**
+     * Creates a new Meeting model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return mixed
+     */
+    public function actionSetRoom($activity_id,$room_id,$status)
+    {
+        $satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+		$activity=$this->findModel($activity_id);		
+		$meeting = Meeting::findOne($activity->id);
+		$room = Room::findOne($room_id);
+		/* $status = 0;
+		if($room->satker_id == $satker_id) $status = 1; */
+		$model = new ActivityRoom([
+			'activity_id'=>$meeting->activity_id,
+			'room_id'=>$room->id,
+			'start'=>$activity->start,
+			'end'=>$activity->end,
+			'status'=>$status,
+		]);
+		
+        if($model->save()) {
+			Yii::$app->session->setFlash('success', 'Data saved');
+		}
+		else{
+			 Yii::$app->session->setFlash('error', 'Unable create there are some error');
+		}
+		if (Yii::$app->request->isAjax){	
+			return ('Room have set');
+		}
+		else{
+			return $this->redirect(['room', 'activity_id' => $activity_id]);
+		}
+    }
+	
+	 public function actionUnsetRoom($activity_id,$room_id)
+    {
+        $model = ActivityRoom::find()->where(
+			'activity_id=:activity_id AND room_id=:room_id',[':activity_id'=>$activity_id,':room_id'=>$room_id])->one();
+		if($model->delete()) {
+			Yii::$app->session->setFlash('success', 'Data saved');
+		}
+		else{
+			 Yii::$app->session->setFlash('error', 'Unable create there are some error');
+		}
+		if (Yii::$app->request->isAjax){	
+			return ('Room have unset');
+		}
+		else{
+			return $this->redirect(['room', 'activity_id' => $activity_id]);
+		}
+    }
 }

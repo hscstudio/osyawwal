@@ -85,14 +85,14 @@ class Activity extends \yii\db\ActiveRecord
     public function rules()
     {			
         return [
-            [['name', 'start', 'end', 'location'], 'required'],
+            [['name', 'start', 'end'], 'required'],
 			[['satker_id'], 'integer'],
             [['description'], 'string'],
             [['start', 'end', 'created', 'modified'], 'safe'],
             [['hostel', 'status', 'created_by', 'modified_by'], 'integer'],
             [['name', 'location'], 'string', 'max' => 255],
             [['name'], 'unique'],
-			['end',\hscstudio\heart\helpers\DateTimeCompareValidator::className(),'compareAttribute'=>'start','operator'=>'>','message'=>'{attribute} must be greater than {compareValue}.'],
+			['end',\hscstudio\heart\helpers\DateTimeCompareValidator::className(),'compareAttribute'=>'start','operator'=>'>=','message'=>'{attribute} must be greater than {compareValue}.'],
         ];
     }
 

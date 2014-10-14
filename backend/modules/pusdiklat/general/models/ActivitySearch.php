@@ -5,21 +5,22 @@ namespace backend\modules\pusdiklat\general\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use backend\models\Room;
+use backend\models\Activity;
 
 /**
- * RoomSearch represents the model behind the search form about `backend\models\Room`.
+ * ActivitySearch represents the model behind the search form about `backend\models\Activity`.
  */
-class RoomSearch extends Room
+class ActivitySearch extends Activity
 {
+    public $year, $organisation_id;
 	/**
      * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'satker_id', 'capacity', 'owner', 'computer', 'hostel', 'status', 'created_by', 'modified_by'], 'integer'],
-            [['code', 'name', 'address', 'created', 'modified'], 'safe'],
+            [['id', 'satker_id', 'hostel', 'status', 'created_by', 'modified_by'], 'integer'],
+            [['name', 'description', 'start', 'end', 'location', 'created', 'modified', 'organisation_id','year'], 'safe'],
         ];
     }
 
@@ -41,8 +42,11 @@ class RoomSearch extends Room
      */
     public function search($params)
     {
-        $query = Room::find();
-
+		$satker_id = (int)Yii::$app->user->identity->employee->satker_id;
+		/* die($this->organisation_id); */
+        $query = Activity::find()
+			->joinWith('meeting',false,'RIGHT JOIN');
+			
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
@@ -54,20 +58,22 @@ class RoomSearch extends Room
         $query->andFilterWhere([
             'id' => $this->id,
             'satker_id' => $this->satker_id,
-            'capacity' => $this->capacity,
-            'owner' => $this->owner,
-            'computer' => $this->computer,
+            'start' => $this->start,
+            'end' => $this->end,
             'hostel' => $this->hostel,
             'status' => $this->status,
             'created' => $this->created,
             'created_by' => $this->created_by,
             'modified' => $this->modified,
             'modified_by' => $this->modified_by,
+			'satker_id' => $satker_id,				
+			'YEAR(start)' => $this->year,
+			'organisation_id' => $this->organisation_id,
         ]);
 
-        $query->andFilterWhere(['like', 'code', $this->code])
-            ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'address', $this->address]);
+        $query->andFilterWhere(['like', 'name', $this->name])
+            ->andFilterWhere(['like', 'description', $this->description])
+            ->andFilterWhere(['like', 'location', $this->location]);
 
         return $dataProvider;
     }
