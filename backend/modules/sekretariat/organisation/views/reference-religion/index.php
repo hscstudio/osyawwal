@@ -12,7 +12,7 @@ use yii\helpers\Url;
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
-$this->title = Yii::t('app', 'References');
+$this->title = Yii::t('app', 'References Religion');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="reference-index">

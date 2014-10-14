@@ -6,13 +6,13 @@ use kartik\grid\GridView;
 use yii\helpers\Url;
 
 /* @var $this yii\web\View */
-/* @var $searchModel backend\modules\sekretariat\organisation\models\ReferenceProgramCodeSearch */
+/* @var $searchModel backend\modules\sekretariat\organisation\models\ReferenceTrainerTypeSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
-$this->title = Yii::t('app', 'References Program Code');
+$this->title = Yii::t('app', 'References Trainer Type');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="reference-index">
@@ -33,22 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'kartik\grid\SerialColumn'],
-
-            	[
-					'format' =>'html',
-					'attribute' => 'parent_id',
-					'vAlign'=>'left',
-					'hAlign'=>'left',
-					'headerOptions'=>['class'=>'kv-sticky-column'],
-					'contentOptions'=>['class'=>'kv-sticky-column'],
-					'value' => function ($data){
-						if($data->parent_id>0)
-						{return Html::a(\backend\models\Reference::findOne(['id'=>$data->parent_id])->name);}
-						else
-						{return Html::a('--');}
-					},
-				],
-				
+            
 				[
 					'attribute' => 'name',
 					'vAlign'=>'middle',
@@ -60,7 +45,7 @@ $this->params['breadcrumbs'][] = $this->title;
 				[
 					'attribute' => 'value',
 					'vAlign'=>'middle',
-					'hAlign'=>'center',
+					'hAlign'=>'left',
 					'headerOptions'=>['class'=>'kv-sticky-column'],
 					'contentOptions'=>['class'=>'kv-sticky-column'],					
 				],

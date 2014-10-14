@@ -10,7 +10,7 @@ $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
 $this->title = Yii::t('app', 'Update {modelClass}: ', [
-    'modelClass' => 'Reference',
+    'modelClass' => 'Reference Graduate',
 ]) . ' ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'References'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];

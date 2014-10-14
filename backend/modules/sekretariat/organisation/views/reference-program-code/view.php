@@ -10,7 +10,7 @@ $controller = $this->context;
 $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
-$this->title = 'View #'.$model->name;
+$this->title = 'View Program Code#'.$model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'References'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

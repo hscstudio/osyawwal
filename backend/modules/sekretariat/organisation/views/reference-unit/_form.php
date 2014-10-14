@@ -11,17 +11,17 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 	<?= $form->errorSummary($model) ?> <!-- ADDED HERE -->
-    <?= $form->field($model, 'parent_id')->textInput() ?>
-
-    <?= $form->field($model, 'type')->textInput(['maxlength' => 255]) ?>
 
     <?= $form->field($model, 'name')->textInput(['maxlength' => 255]) ?>
 
     <?= $form->field($model, 'value')->textInput(['maxlength' => 255]) ?>
 
-    <?= $form->field($model, 'sort')->textInput() ?>
-
-    <?= $form->field($model, 'status')->textInput() ?>
+    <?= $form->field($model, 'status')->widget(\kartik\widgets\SwitchInput::classname(), [
+					'pluginOptions' => [
+						'onText' => 'On',
+						'offText' => 'Off',
+					]
+				]) ?>
 
     <div class="form-group">
         <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

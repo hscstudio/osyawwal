@@ -11,7 +11,7 @@ $menus = $controller->module->getMenuItems();
 $this->params['sideMenu'][$controller->module->uniqueId]=$menus;
 
 $this->title = Yii::t('app', 'Create {modelClass}', [
-    'modelClass' => 'Reference',
+    'modelClass' => 'Reference Graduate',
 ]);
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'References'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;

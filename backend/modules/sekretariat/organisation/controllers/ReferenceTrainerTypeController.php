@@ -4,15 +4,15 @@ namespace backend\modules\sekretariat\organisation\controllers;
 
 use Yii;
 use backend\models\Reference;
-use backend\modules\sekretariat\organisation\models\ReferenceSatkerSearch;
+use backend\modules\sekretariat\organisation\models\ReferenceTrainerTypeSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 
 /**
- * ReferenceSatkerController implements the CRUD actions for Reference model.
+ * ReferenceTrainerTypeController implements the CRUD actions for Reference model.
  */
-class ReferenceSatkerController extends Controller
+class ReferenceTrainerTypeController extends Controller
 {
     public $layout = '@hscstudio/heart/views/layouts/column2';
     public function behaviors()
@@ -33,7 +33,7 @@ class ReferenceSatkerController extends Controller
      */
     public function actionIndex()
     {
-        $searchModel = new ReferenceSatkerSearch();
+        $searchModel = new ReferenceTrainerTypeSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -62,12 +62,11 @@ class ReferenceSatkerController extends Controller
     public function actionCreate()
     {
         $model = new Reference();
-		
-		//$model->sort=Reference::find()->select(['id','type','max(sort) as ttl','name'])->where(['type'=>'satker','id'=>17])->one()->sort;
 
         if ($model->load(Yii::$app->request->post())){ 
-			$model->parent_id=0;
-			$model->type='satker';
+			$model->parent_id='';
+			$model->type='trainer_type';
+			$model->sort='';
 			if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'New data have saved.');
 			}
@@ -93,6 +92,9 @@ class ReferenceSatkerController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
+			$model->parent_id='';
+			$model->type='trainer_type';
+			$model->sort='';
             if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
 			}

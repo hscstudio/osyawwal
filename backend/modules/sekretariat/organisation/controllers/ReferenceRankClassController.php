@@ -64,6 +64,9 @@ class ReferenceRankClassController extends Controller
         $model = new Reference();
 
         if ($model->load(Yii::$app->request->post())){ 
+			$model->parent_id=0;
+			$model->type='rank_class';
+			$model->sort='';
 			if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'New data have saved.');
 			}
@@ -89,6 +92,9 @@ class ReferenceRankClassController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post())) {
+			$model->parent_id=0;
+			$model->type='rank_class';
+			$model->sort='';
             if($model->save()) {
 				Yii::$app->getSession()->setFlash('success', 'Data have updated.');
 			}
